@@ -1,0 +1,53 @@
+/* ----- schematic scene (js/schematic.js). Replaces the old #resWater/#gate/#jet rules ----- */
+#schematic{border-radius:var(--radius);border:1px solid var(--line-strong);overflow:hidden;
+  box-shadow:0 0 36px rgba(61,224,255,.10),0 12px 40px rgba(0,0,0,.4)}
+#schematic svg{display:block;width:100%;height:auto}
+#schematic{position:relative;container-type:inline-size}
+.sc-particles{position:absolute;left:0;top:0;width:100%;height:auto;aspect-ratio:2/1;pointer-events:none}
+#sc-tint{transition:opacity 1s}
+.bay-hole{fill:#050c18}
+.bay-glow{fill:#ffb454}
+.bay-door{fill:#7c879a;stroke:#d5deec;stroke-opacity:.3;transform-box:fill-box;transform-origin:top;transition:transform 1s ease}
+.bay-glow{transition:opacity 1s}
+#sc-delta,#sc-plume{transition:rx 3s,opacity 2s}
+#schematic.running .bay-frame{fill:#2a3446;stroke:#ffb454;stroke-opacity:.45}
+.bay-lamp{fill:#3b6b55;transition:fill .4s}
+.bay-lamp.open{fill:#ffb454;filter:drop-shadow(0 0 3px #ffb454)}
+/* discharge ribbons + river streamlines */
+.jet{transition:opacity .4s}
+.jet-body,.jet-core{fill:none;stroke-linecap:round}
+.jet-body{opacity:.55}
+.jet-core{stroke-dasharray:12 10;opacity:.9}
+.sc-stream{fill:none;stroke:#cfefff;stroke-width:1.5;stroke-linecap:round;stroke-dasharray:6 16;opacity:.3}
+#sc-splash{transition:opacity .4s}
+.jet-core,.sc-stream{animation:sc-flow var(--spd,1s) linear infinite;animation-play-state:paused}
+#schematic.running .jet-core,#schematic.running .sc-stream{animation-play-state:running}
+@keyframes sc-flow{to{stroke-dashoffset:-44}}
+#sc-dir{opacity:.35}
+#schematic.running #sc-dir path{animation:sc-dir 1.2s ease-in-out infinite}
+#schematic.running #sc-dir path:nth-child(2){animation-delay:.2s}
+#schematic.running #sc-dir path:nth-child(3){animation-delay:.4s}
+@keyframes sc-dir{0%,100%{opacity:.25}50%{opacity:1}}
+/* HUD */
+.hud-l{fill:#8fa3bf}.hud-v{fill:#e8f1ff;font-weight:600}
+.sc-hud{display:none}
+@container (max-width:560px){
+  #sc-hud-svg{display:none}
+  .sc-hud{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.4rem .9rem;padding:.7rem .9rem;
+    background:rgba(4,16,31,.85);border-top:1px solid var(--line);font-family:var(--mono);font-size:.74rem;letter-spacing:.04em}
+  .sc-hud div{display:flex;justify-content:space-between;gap:.6rem;white-space:nowrap}
+  .sc-hud span{color:var(--muted)} .sc-hud b{color:#e8f1ff}
+}
+
+/* river depth + glints (static when idle, drifting only while a run is active) */
+.sc-glint{fill:none;stroke:#e8f6ff;stroke-width:1;stroke-linecap:round;stroke-dasharray:2 20;opacity:.3;animation:sc-flow 3.2s linear infinite;animation-play-state:paused}
+.sc-glint.g2{stroke-dasharray:3 19;animation-duration:4.4s}
+#schematic.running .sc-glint{animation-play-state:running}
+@media (prefers-reduced-motion:reduce){.jet-core,.sc-stream,.sc-glint,#schematic.running #sc-dir path{animation:none}}
+/* labels: scale with --ls (set in schematic.js fit()) so they stay legible on narrow screens */
+@container (max-width:560px){
+  .sc-lab{font-size:calc(11px*var(--ls,1))}
+  .sc-mk{font-size:calc(10px*var(--ls,1))}
+  .sc-sec{display:none}
+  .sc-rl{text-anchor:end;transform:translate(250px,-16px)}
+}

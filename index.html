@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>River Manager: A Digital Twin Lite of Xiaolangdi Water-Sediment Regulation</title>
+  <meta name="theme-color" content="#040a14">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/scene.css">
+</head>
+<body class="intro-active">
+
+<!-- ===== INTRO (removed from the DOM by js/intro.js when finished) ===== -->
+<div id="intro">
+  <section id="landing">
+    <img class="landing-logo" src="assets/thu_logo_white.png" alt="Tsinghua University">
+    <h1>River Manager</h1>
+    <p class="subtitle">A Digital Twin Lite of Xiaolangdi Water-Sediment Regulation</p>
+    <button id="playBtn" class="play" aria-label="Play intro video"></button>
+    <p class="small">Best with sound on</p>
+    <p class="small">Development and Management of the Yellow River Basin · Autumn 2026 · Group 2</p>
+  </section>
+  <section id="stage" hidden>
+    <!-- preload="none" on video 2 until PLAY is clicked; intro.js then preloads it -->
+    <video id="video1" src="assets/video1_history.mp4" playsinline preload="auto" hidden>
+      <track kind="subtitles" srclang="en" label="English" src="subs/video1.en.vtt" default>
+    </video>
+    <video id="video2" src="assets/video2_intro.mp4" playsinline preload="none" hidden>
+      <track kind="subtitles" srclang="en" label="English" src="subs/video2.en.vtt" default>
+    </video>
+    <div class="vctl">
+      <button id="ccBtn" aria-pressed="true">CC</button>
+      <button id="muteBtn" aria-pressed="false">Mute</button>
+    </div>
+    <button id="skipBtn" type="button">SKIP</button>
+	<p id="aiNote" class="ai-note">AI-generated video (Seedance 2.5 ai)</p> <div id="subs" class="subs"></div>
+  </section>
+</div>
+<div id="flash"></div>
+
+<!-- ===== MAIN SITE ===== -->
+<div id="site" hidden>
+  <header>
+    <div class="brand">
+      <img class="logo" src="assets/thu_logo_white.png" alt="Tsinghua University">
+      <span class="brand-sep" aria-hidden="true"></span>
+      <div class="brand-text">
+        <h1 id="main-title" tabindex="-1">River Manager</h1>
+        <span class="small">A Digital Twin Lite of Xiaolangdi Water-Sediment Regulation</span>
+      </div>
+    </div>
+    <nav role="tablist" aria-label="Sections">
+      <button role="tab" data-tab="simulator" aria-selected="true">Simulator</button>
+      <button role="tab" data-tab="timeline" aria-selected="false">Governance Timeline</button>
+      <button role="tab" data-tab="about" aria-selected="false">About and Method</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ---------- SIMULATOR ---------- -->
+    <section id="tab-simulator" class="tabpanel">
+      <div class="banner">Simplified educational model. Not a forecast.</div>
+
+      <div class="topbar">
+        <div class="toggle" role="group" aria-label="Mode">
+          <button data-mode="challenge" aria-pressed="true">Challenge</button>
+          <button data-mode="sandbox" aria-pressed="false">Sandbox</button>
+          <button data-mode="replay" aria-pressed="false">Replay</button>
+        </div>
+        <label data-modes="challenge">Difficulty
+          <select id="difficulty"><option value="easy">Easy</option><option value="normal">Normal</option></select>
+        </label>
+        <span id="roundInd" data-modes="challenge"></span>
+        <button id="resetBtn" data-modes="challenge sandbox">Reset</button>
+        <span id="simState" class="sim-state" data-state="idle" role="status">Simulation idle</span>
+      </div>
+
+      <div id="dashboard">
+        <div class="grid">
+          <div class="side" data-modes="challenge sandbox">
+            <aside class="panel" id="controls"><h2>Controls</h2></aside>
+            <button id="runBtn" class="big">Run regulation</button>
+          </div>
+
+          <div class="center">
+            <div id="roundCard" class="card" data-modes="challenge"></div>
+            <!-- Animated schematic: dam, river, delta. Driven by drawSchematic() in app.js -->
+            <div id="schematic" role="group" aria-label="Dam, reservoir and river schematic"></div>
+          </div>
+
+          <aside class="panel" id="meters" data-modes="challenge sandbox">
+            <h2>Meters</h2>
+            <div id="meterList"></div>
+            <p id="stateBox" class="small"></p>
+          </aside>
+        </div>
+
+        <div class="bottom" data-modes="challenge sandbox">
+          <div class="card" id="results" aria-live="polite">
+            <p id="verdict" class="verdict" hidden></p>
+            <p id="resultText">Set the controls, then press Run regulation.</p>
+            <p id="teaching" class="small"></p>
+            <button id="nextBtn" data-modes="challenge" hidden>Next round</button>
+          </div>
+          <div class="card" id="runChartCard">
+            <h3>Run history</h3>
+            <div class="chartbox mini"><canvas id="runChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Replay mode -->
+        <div id="replay" data-modes="replay">
+          <div class="replay-bar">
+            <label>Past regulation event <select id="eventSel"></select></label>
+            <button id="replayBtn">Play animation</button>
+          </div>
+          <p class="small replay-note">Real measurements at the Lijin gauge near the sea, not the dam release. The reservoir level in the animation is illustrative.</p>
+          <div id="eventCards" class="cards"></div>
+          <div class="chartbox"><canvas id="replayChart"></canvas></div>
+        </div>
+      </div>
+
+      <section id="debrief" class="card" hidden></section>
+    </section>
+
+    <!-- ---------- TIMELINE ---------- -->
+    <section id="tab-timeline" class="tabpanel" hidden>
+      <h2>Governance Timeline</h2>
+	  <p class="small">Each entry links to its sources. Where sources disagree on a date, the entry says so.</p>
+      <ol id="timelineList" class="timeline"></ol>
+    </section>
+
+    <!-- ---------- ABOUT ---------- -->
+	<section id="tab-about" class="tabpanel" hidden>
+	  <h2>About and Method</h2>
+
+	  <h3>Course project</h3>
+	  <p><strong>River Manager: A Digital Twin Lite of Xiaolangdi Water-Sediment Regulation</strong></p>
+	  <p>Course: <em>Development and Management of the Yellow River Basin</em>, Autumn 2026.<br>Group 2</p>
+	  <table class="team">
+	    <thead><tr><th>Name</th><th>Student ID</th></tr></thead>
+	    <tbody>
+		  <tr><td>唐子原</td><td>2026270055</td></tr>
+		  <tr><td>李孝源</td><td>2026270054</td></tr>
+		  <tr><td>荣赫</td><td>2026380114</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Purpose and scope</h3>
+      <p>The site lets you act as the manager of the Xiaolangdi reservoir during the flood-season water-sediment regulation of the Yellow River. You choose how much water to release, for how long, and how much to keep for supply, and you see simplified effects on four meters: flood safety, reservoir health, water supply and ecology. It is a teaching tool and a "digital twin lite": it imitates the logic of the real system but is <strong>not</strong> a forecast and must not be used for decisions.</p>
+
+      <h3>What is real and what is simplified</h3>
+      <ul>
+        <li><strong>Real data:</strong> the Replay mode (data/events.json) and the Governance Timeline (data/timeline.json). Each entry names its source.</li>
+        <li><strong>Teaching assumptions:</strong> everything in the simulation model, the eight Challenge rounds, the policy rules (800 m³/s delta flow, 25% reserve, 6,000 m³/s inflow peak), the scoring weights and the slider ranges. They are designed to make the trade-offs visible, not to match measurements.</li>
+        <li><strong>Placeholder model:</strong> js/model.js is a deliberately simple stand-in that can later be replaced by a calibrated model without changing the interface.</li>
+      </ul>
+
+      <h3>How the model works (plain language)</h3>
+      <ol>
+        <li><strong>Water balance.</strong> Water available = water already stored + inflow for the year (dry, normal or wet). The planned release volume is peak discharge × duration, converted to a percentage of reservoir volume. The supply reserve is a hard limit: the release can only use the water left after the reserve, so a larger plan is cut to what is allowed (the peak actually reached falls with it). Users are then served from the water that remains.</li>
+        <li><strong>Sediment balance.</strong> A "flushing efficiency" rises with peak discharge and with duration (up to about 10 days). The more efficient the flush, the more sediment leaves the reservoir. The reservoir carries a stock of old sediment from round to round: a flush can only scour as much as the stock holds, and sediment that stays in the reservoir uses up storage.</li>
+        <li><strong>Riverbed and channel capacity.</strong> A strong, long release scours the lower riverbed and raises channel capacity, but the gain shrinks as capacity rises (the bed coarsens). A weak release lets sediment deposit and lowers it. The capacity is carried into the next round.</li>
+        <li><strong>Meters.</strong> Each meter is a 0 to 100 score calculated from the results above (see below).</li>
+      </ol>
+
+      <h3>Meter definitions</h3>
+      <ul>
+        <li><strong>Flood safety</strong> falls when the peak release is above the current channel capacity, when a large inflow peak is not met by enough release, or when the reservoir is left almost full.</li>
+        <li><strong>Reservoir health</strong> averages three parts: how much sediment stayed in the reservoir this round, how close storage is to the middle of its range, and how large the carried sediment stock is.</li>
+        <li><strong>Water supply</strong> combines three parts: how much of demand was served, how much water is left for next year, and how well the supply reserve covers demand. It is reduced if the planned release had to be cut because of the reserve.</li>
+        <li><strong>Ecology</strong> rewards longer releases (with diminishing returns), more sediment carried downstream and more flow reaching the delta, and is reduced by extreme peak flows. Policy rules subtract points when broken.</li>
+      </ul>
+
+      <h3>Parameters</h3>
+      <div class="tablewrap">
+      <table class="params">
+        <thead><tr><th>Parameter</th><th>Value</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Release volume as % of reservoir</td><td>peak × days × 0.000683</td><td>Derived: 86,400 s per day ÷ 12.65 billion m³ total storage × 100 (Nunn, 1999). Simplification: total storage, not live storage (5.1 billion m³).</td></tr>
+          <tr><td>Inflow: dry / normal / wet</td><td>20 / 40 / 65 % of reservoir (total above 100 % spills)</td><td>Teaching assumption</td></tr>
+          <tr><td>Incoming sediment: low / medium / high</td><td>10 / 20 / 35 units</td><td>Teaching assumption</td></tr>
+          <tr><td>Demand: low / medium / high</td><td>20 / 30 / 45 units</td><td>Teaching assumption</td></tr>
+          <tr><td>Flushing efficiency</td><td>peak ÷ 4,000 × min(1, days ÷ 10)</td><td>Anchored to real practice: peak flows around 4,000 m³/s and a high-flow phase of about 10 days (Wang et al., 2017). The formula itself is an assumption.</td></tr>
+          <tr><td>Sediment carried out</td><td>incoming × (0.2 + 0.7 × efficiency), plus scour of old deposit = min(stock, 12 × efficiency)</td><td>Teaching assumption</td></tr>
+          <tr><td>Starting sediment stock in the reservoir</td><td>30 units</td><td>Teaching assumption</td></tr>
+          <tr><td>Channel capacity change per round</td><td>+220 × efficiency (max 1) × headroom − 4 × sediment deposited; headroom = (5,000 − capacity) ÷ 3,200, between 0.05 and 1</td><td>Teaching assumption, scaled so the best-case gain is about 100 to 200 m³/s per round, the order of the reported rise from about 1,800 to 4,500 m³/s over 2002 to 2020, and slows as capacity rises</td></tr>
+          <tr><td>Starting channel capacity</td><td>2,800 m³/s</td><td>Assumption inside the reported 1,800 to 4,500 m³/s range, 2002 to 2020</td></tr>
+          <tr><td>Starting reservoir storage</td><td>55 %</td><td>Teaching assumption</td></tr>
+          <tr><td>Flow reaching the delta</td><td>0.3 × delivered peak × (0.5 + 0.5 × min(1, days ÷ 12)) + base flow of 60 / 120 / 200 m³/s (dry / normal / wet)</td><td>Teaching assumption</td></tr>
+          <tr><td>Policy rules</td><td>800 m³/s delta flow; 25 % reserve; 6,000 m³/s inflow peak</td><td>Teaching assumptions, not official policy values</td></tr>
+          <tr><td>Scoring weights</td><td>Flood 0.30, Reservoir 0.25, Supply 0.25, Ecology 0.20; policy penalty 20 points (10 on Easy)</td><td>Design choice, tunable in GAME_CONFIG (js/game.js)</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3>About the real data</h3>
+      <ul>
+        <li>Replay values come from a published table of 15 regulation events (2002 to 2013) measured at the Lijin gauge, near the sea. They are <strong>not</strong> the dam release itself.</li>
+        <li>Duration is the end date minus the start date. In 2007 and 2010 there were several events and the years combine them.</li>
+        <li>Per-year bankfull capacity and per-event reservoir sediment in and out were not available in the sources used, so they are not shown.</li>
+       </ul>
+
+      <h3>Limitations</h3>
+      <ul>
+        <li>One number for channel capacity; the real lower river has reaches with different capacities, and the smallest one limits safe flow.</li>
+        <li>No tributaries, rainfall forecasts, upstream reservoir operation or the two-phase structure of real events (a clear-water phase, then a sediment-export phase).</li>
+        <li>Real scouring weakens as the riverbed coarsens (Wang et al., 2017); the model does not include this.</li>
+        <li>Ecology is a single score and does not represent delta morphology, nutrients or fisheries.</li>
+        <li>Each round is one year; real regulation depends on conditions over many years.</li>
+      </ul>
+
+      <h3>Sources</h3>
+      <ol class="refs">
+        <li>Wang, H., Wu, X., Bi, N., Li, S., Yuan, P., Wang, A., Syvitski, J. P. M., Saito, Y., Yang, Z., Liu, S., &amp; Nittrouer, J. (2017). Impacts of the dam-orientated water-sediment regulation scheme on the lower reaches and delta of the Yellow River (Huanghe): A review. <em>Global and Planetary Change, 157</em>, 93–113. <a href="https://doi.org/10.1016/j.gloplacha.2017.08.005" target="_blank" rel="noopener">https://doi.org/10.1016/j.gloplacha.2017.08.005</a></li>
+        <li>Nunn, J. A. (1999). <em>The Xiaolangdi Multipurpose Dam Project.</em> Society for Mining, Metallurgy &amp; Exploration. <a href="https://www.onemine.org/documents/the-xiaolangdi-multipurpose-dam-project" target="_blank" rel="noopener">onemine.org</a></li>
+        <li>World Bank. <em>Xiaolangdi Multipurpose Project (P003562).</em> <a href="https://projects.worldbank.org/en/projects-operations/project-detail/P003562" target="_blank" rel="noopener">projects.worldbank.org</a></li>
+        <li>Liang, L. <em>Water management and allocation of the Yellow River Basin.</em> International Water Management Institute. <a href="https://archive.iwmi.org/assessment/files_new/research_projects/river_basin_development_and_management/Liang_WaterPolicy_YRB.pdf" target="_blank" rel="noopener">IWMI archive</a></li>
+        <li><em>Strategic Study of CAE</em> (2022). Research on water and sediment regulation of the Yellow River under new situation. <a href="https://www.engineering.org.cn/sscae/EN/10.15302/J-SSCAE-2022.01.013" target="_blank" rel="noopener">doi 10.15302/J-SSCAE-2022.01.013</a></li>
+        <li>Xinhua (2026, August 12). Yellow River records 27 consecutive years of uninterrupted flow. <a href="https://english.news.cn/20260812/26199b0dadc94f05a77ca60f40b78ca6/c.html" target="_blank" rel="noopener">english.news.cn</a></li>
+        <li>Xinhua (2022, October 30). China adopts law on Yellow River conservation. <a href="http://english.news.cn/20221030/ccc5f681776e40cd9920b6b0d5a082d0/c.html" target="_blank" rel="noopener">english.news.cn</a></li>
+        <li>China.org.cn (2006). Yellow River water use to be regulated. <a href="http://www.china.org.cn/archive/2006-08/02/content_1176629.htm" target="_blank" rel="noopener">china.org.cn</a></li>
+        <li>People's Daily Online (2026, August 24). Three hydrological stations reveal China's efforts to protect the Yellow River. <a href="https://en.people.cn/n3/2026/0824/c90000-20491753.html" target="_blank" rel="noopener">en.people.cn</a></li>
+        <li>More sources are linked inside each Governance Timeline entry.</li>
+      </ol>
+
+      <h3>Use of AI</h3>
+      <p>The two introduction videos were generated with AI (Seedance 2.5 ai) and are illustrative, not documentary footage. The code of this site was written with web coding assistance from Claude Sonnet 5.5 (Anthropic) and edited by the group. The data entries were compiled with AI-assisted web search and are linked to their sources.</p>
+
+      <h3>Code map</h3>
+      <p>intro.js (video intro), app.js (interface), game.js (Challenge rules), model.js (simulation),  data/*.json (content).</p>
+    </section>
+  </main>
+
+  <footer>
+	<p class="small">Course project, <em>Development and Management of the Yellow River Basin</em>, Autumn 2026 · Group 2</p>
+	<p><a href="./">Replay intro</a></p>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="js/intro.js"></script>
+<script src="js/model.js"></script>
+<script src="js/game.js"></script>
+<script src="js/schematic.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
