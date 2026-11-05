@@ -80,6 +80,7 @@
 
   // Swap video stage for the start page (the ENTER button lives there)
   function showStart() {
+    if (!startPage) { step = 4; showSite(); cleanup(); return; }   // start page missing from index.html -> straight to site
     v2.pause(); stage.hidden = true; startPage.hidden = false;
     $('enterBtn').focus({ preventScroll: true });
   }

@@ -141,7 +141,7 @@ select option{background:#0a1830;color:var(--text)}
 @media (prefers-reduced-motion:reduce){#startpage{animation:none}.enter::before{animation:none}}
 
 /* ----- infographic (Governance Timeline tab) ----- */
-.infographic{margin:1rem 0 1.6rem;padding:0;text-align:center}
+.infographic{margin:1rem auto 1.6rem;padding:0;text-align:center;width:40%;min-width:min(100%,300px)}   /* 40% = 60% smaller */
 .infographic a{display:block;border-radius:var(--radius);border:1px solid var(--line-strong);overflow:hidden;
   background:rgba(4,16,31,.6);box-shadow:0 8px 28px rgba(0,0,0,.35);cursor:zoom-in}
 .infographic img{display:block;width:100%;height:auto}
