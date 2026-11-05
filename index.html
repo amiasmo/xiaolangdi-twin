@@ -38,6 +38,11 @@
     <button id="skipBtn" type="button">SKIP</button>
 	<p id="aiNote" class="ai-note">AI-generated video (Seedance 2.5 ai)</p> <div id="subs" class="subs"></div>
   </section>
+  <!-- Start page: shown after video 2 (and the white flash). ENTER opens the site. -->
+  <section id="startpage" hidden aria-label="Start page">
+    <img class="start-bg" src="assets/start_wallpaper.png" alt="">
+    <div class="start-anchor"><button id="enterBtn" type="button" class="enter">Enter</button></div>
+  </section>
 </div>
 <div id="flash"></div>
 
@@ -94,17 +99,7 @@
               <p id="dockSummary" class="dock-summary" aria-live="off"></p>
               <button id="runBtn" class="big">Run regulation</button>
             </div>
-          </div>
-
-          <aside class="panel" id="meters" data-modes="challenge sandbox">
-            <h2>Meters</h2>
-            <div id="meterList"></div>
-            <div id="stateBox"></div>
-          </aside>
-        </div>
-
-        <div class="bottom" data-modes="challenge sandbox">
-          <div class="card" id="results" aria-live="polite">
+            <div class="card" id="results" aria-live="polite" data-modes="challenge sandbox">
             <h3>Regulation results</h3>
             <div id="replayNote" class="replay-tag" role="status" hidden><span id="replayNoteText"></span><button id="replayBack" type="button">Back to current</button></div>
             <!-- before the first run (and after Reset / each new round) -->
@@ -126,6 +121,16 @@
               <button id="nextBtn" data-modes="challenge" hidden>Next round</button>
             </div>
           </div>
+          </div>
+
+          <aside class="panel" id="meters" data-modes="challenge sandbox">
+            <h2>Meters</h2>
+            <div id="meterList"></div>
+            <div id="stateBox"></div>
+          </aside>
+        </div>
+
+        <div class="bottom" data-modes="challenge sandbox">
           <div class="card" id="runChartCard">
             <div class="hist-head"><h3>Run history</h3><p id="histBest" class="hist-best" hidden></p></div>
             <div id="histIdle" class="res-idle"><p id="histIdleText">No runs yet.</p><p class="small">Every run is saved here so you can compare settings and scores side by side, spot your best run and replay any of them.</p></div>
@@ -156,6 +161,12 @@
     <section id="tab-timeline" class="tabpanel" hidden>
       <h2>Governance Timeline</h2>
 	  <p class="small">Each entry links to its sources. Where sources disagree on a date, the entry says so.</p>
+      <figure class="infographic">
+        <a href="assets/Xiaolangdi_%20Infographic.png" target="_blank" rel="noopener" aria-label="Open the Xiaolangdi Dam infographic full size in a new tab">
+          <img src="assets/Xiaolangdi_%20Infographic.png" alt="Infographic about the Xiaolangdi Dam on the Yellow River" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="small">Xiaolangdi Dam at a glance. Click the image to open it full size.</figcaption>
+      </figure>
       <ol id="timelineList" class="timeline"></ol>
     </section>
 
@@ -199,6 +210,14 @@
         <li><strong>Reservoir health</strong> averages three parts: how much sediment stayed in the reservoir this round, how close storage is to the middle of its range, and how large the carried sediment stock is.</li>
         <li><strong>Water supply</strong> combines three parts: how much of demand was served, how much water is left for next year, and how well the supply reserve covers demand. It is reduced if the planned release had to be cut because of the reserve.</li>
         <li><strong>Ecology</strong> rewards longer releases (with diminishing returns), more sediment carried downstream and more flow reaching the delta, and is reduced by extreme peak flows. Policy rules subtract points when broken.</li>
+      </ul>
+
+      <h3>What the screen shows</h3>
+      <ul>
+        <li><strong>The scene is a schematic, not a hydraulic model.</strong> The three gates open in turn as the peak release rises (all open at 5,000 m³/s), which is a visual rule and not real gate operation. The sediment tint and the amount of sediment reaching the delta follow the model's sediment values. The release gauge compares the peak that was actually delivered with the channel capacity, and its above or within verdict is the model's own flood flag.</li>
+        <li><strong>Status colours</strong> use the game's thresholds: a meter is Critical below 40, Needs attention from 40 to 59 and Healthy from 60 up. The total score is Critical below 50. These are teaching thresholds, not real operating limits.</li>
+        <li><strong>Explanations and suggestions</strong> are written by fixed rules from the model's outputs, such as the peak against the channel capacity, the sediment kept in the reservoir and any cut in the release. They are hints about trade-offs. They never change the controls for you.</li>
+        <li><strong>Replay on the run history</strong> plays back the stored result of an earlier run. It does not run the model again.</li>
       </ul>
 
       <h3>Parameters</h3>

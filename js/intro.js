@@ -1,4 +1,4 @@
-/* intro.js - landing screen -> video 1 (skippable) -> video 2 -> single white flash -> site.
+/* intro.js - landing screen -> video 1 (skippable) -> video 2 -> single white flash -> start page (ENTER) -> site.
    `step` guards every transition so each one happens only once. */
 (function () {
   'use strict';
@@ -8,7 +8,8 @@
   const v1 = $('video1'), v2 = $('video2');
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const AI_CREDIT = 'AI-generated video (Seedance 2.5 ai)';   // check the exact model/version name before submitting
-  let step = 0;          // 0 landing, 1 video1, 2 video2, 3 finishing
+  let step = 0;          // 0 landing, 1 video1, 2 video2, 3 start page shown, 4 entering site
+  const startPage = $('startpage');
   let ccOn = true, muted = false;
   const VOLUME = 0.35;   // 0..1, narration/music level for both videos (lower = quieter). Note: iOS Safari ignores .volume.
   v1.volume = v2.volume = VOLUME;
@@ -77,23 +78,36 @@
   v2.addEventListener('ended', flashToSite);     // fallback if timeupdate was missed
   v2.addEventListener('error', () => { console.warn('Video 2 error:', v2.error); plainFinish(); });
 
+  // Swap video stage for the start page (the ENTER button lives there)
+  function showStart() {
+    v2.pause(); stage.hidden = true; startPage.hidden = false;
+    $('enterBtn').focus({ preventScroll: true });
+  }
+
   function flashToSite() {
     if (step !== 2) return;
     step = 3;
-    if (reduceMotion) {                           // plain 300 ms cross-fade, no bright flash
-      showSite(); intro.style.transition = 'opacity 300ms'; intro.style.opacity = 0;
-      setTimeout(cleanup, 300); return;
-    }
+    if (reduceMotion) { showStart(); flash.remove(); return; }      // no bright flash
     flash.style.transition = 'opacity 150ms linear'; flash.style.opacity = 1;     // fade in 150 ms
     setTimeout(() => {
-      v2.pause(); stage.hidden = true; intro.style.background = 'transparent'; showSite();  // swap under the white
+      showStart();                                                                // swap under the white
       setTimeout(() => {                                                          // hold 100 ms
         flash.style.transition = 'opacity 600ms ease-out'; flash.style.opacity = 0;   // fade out 600 ms
-        setTimeout(cleanup, 650);
+        setTimeout(() => flash.remove(), 650);
       }, 100);
     }, 150);
   }
-  function plainFinish() { if (step === 3) return; step = 3; showSite(); cleanup(); }  // never get stuck
+  function plainFinish() { if (step >= 3) return; step = 3; v1.pause(); showStart(); }  // never get stuck
+
+  // Step F: ENTER clicked -> fade the intro out and reveal the site
+  $('enterBtn').addEventListener('click', () => {
+    if (step !== 3) return;
+    step = 4;
+    showSite();
+    if (reduceMotion) { cleanup(); return; }
+    intro.style.transition = 'opacity 500ms ease'; intro.style.opacity = 0;
+    setTimeout(cleanup, 520);
+  });
 
   // Controls
   $('ccBtn').addEventListener('click', e => {

@@ -328,10 +328,6 @@ function showState(storage, capacity) {
 }
 
 /* ---------- schematic ---------- */
-const waterColor = s => {   // blue (clear) -> brown (muddy)
-  const a = [58, 140, 200], b = [150, 105, 55];
-  return 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * s)).join(',') + ')';
-};
 // Header chip mirrors the scene's own run state (the 'running' class set by animateRun)
 new MutationObserver(() => {
   const r = Scene.host.classList.contains('running'), el = $('simState');
