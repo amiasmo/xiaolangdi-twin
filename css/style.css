@@ -456,3 +456,8 @@ footer{text-align:center;padding:2rem 1rem;margin-top:1rem;border-top:1px solid 
 
 /* very narrow phones (320px): let the mode toggle shrink instead of overflowing */
 @media (max-width:360px){.toggle{max-width:100%}.toggle button{padding-inline:.7rem}}
+
+/* ----- overall interface size: 1 = 100%, .85 = zoomed out 15% ----- */
+:root{--ui-zoom:.85}
+#site{zoom:var(--ui-zoom)}
+@media (max-width:700px){:root{--ui-zoom:1}}   /* phones keep full size */
