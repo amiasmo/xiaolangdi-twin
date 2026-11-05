@@ -51,3 +51,10 @@
   .sc-sec{display:none}
   .sc-rl{text-anchor:end;transform:translate(250px,-16px)}
 }
+
+/* ----- gate ids, release vs capacity gauge, overbank cue ----- */
+.bay-id{font:600 7.5px var(--mono);letter-spacing:.5px;fill:#e8f1ff;fill-opacity:.85}
+#sc-over{transition:opacity .4s}
+@container (max-width:560px){ .sc-gt{display:none} .bay-id{font-size:calc(7.5px*var(--ls,1))} }   /* values are in the HTML readout instead */
+@media (prefers-reduced-motion:reduce){#sc-over{transition:none}}
+.scene-note{margin:0;padding:0 var(--s1)}

@@ -82,28 +82,48 @@
         <div class="grid">
           <div class="side" data-modes="challenge sandbox">
             <aside class="panel" id="controls"><h2>Controls</h2></aside>
-            <button id="runBtn" class="big">Run regulation</button>
           </div>
 
           <div class="center">
             <div id="roundCard" class="card" data-modes="challenge"></div>
             <!-- Animated schematic: dam, river, delta. Driven by drawSchematic() in app.js -->
             <div id="schematic" role="group" aria-label="Dam, reservoir and river schematic"></div>
+            <p class="scene-note small">Schematic, not a hydraulic model: the three gates open in turn as the peak release rises (all open at 5,000 m³/s). This illustrates release size, not real gate operation.</p>
+            <!-- Run dock: the action sits directly under the scene it drives -->
+            <div class="dock" data-modes="challenge sandbox">
+              <p id="dockSummary" class="dock-summary" aria-live="off"></p>
+              <button id="runBtn" class="big">Run regulation</button>
+            </div>
           </div>
 
           <aside class="panel" id="meters" data-modes="challenge sandbox">
             <h2>Meters</h2>
             <div id="meterList"></div>
-            <p id="stateBox" class="small"></p>
+            <div id="stateBox"></div>
           </aside>
         </div>
 
         <div class="bottom" data-modes="challenge sandbox">
           <div class="card" id="results" aria-live="polite">
-            <p id="verdict" class="verdict" hidden></p>
-            <p id="resultText">Set the controls, then press Run regulation.</p>
-            <p id="teaching" class="small"></p>
-            <button id="nextBtn" data-modes="challenge" hidden>Next round</button>
+            <h3>Regulation results</h3>
+            <!-- before the first run (and after Reset / each new round) -->
+            <div id="resIdle" class="res-idle">
+              <p id="resIdleText">Set the peak release, duration and reserve, then press Run regulation.</p>
+              <p class="small">After each run you get the total score, why each meter moved and a few things to try. Scores come from a simplified teaching model.</p>
+            </div>
+            <div id="resBody" hidden>
+              <div class="res-top">
+                <p id="verdict" class="verdict" hidden></p>
+                <div class="res-score"><span class="res-score-l">Total score</span><b id="rsScore" data-v="0">–</b><small>/100</small><span id="rsDelta" class="delta"></span></div>
+              </div>
+              <p id="resultText"></p>
+              <h4>Why the scores moved</h4>
+              <ul id="resWhy" class="res-why"></ul>
+              <h4>Things to try next</h4>
+              <ul id="resNext" class="res-next"></ul>
+              <p id="teaching" class="small"></p>
+              <button id="nextBtn" data-modes="challenge" hidden>Next round</button>
+            </div>
           </div>
           <div class="card" id="runChartCard">
             <h3>Run history</h3>

@@ -15,9 +15,10 @@ const Scene = (function () {
       <rect class="bay-glow" x="${faceX(y) - 38}" y="${y}" width="34" height="20" rx="2"/>
       <rect class="bay-door" x="${faceX(y) - 38}" y="${y}" width="34" height="20" rx="2"/>
       <circle class="bay-lamp" cx="${faceX(y) - 49}" cy="${y + 10}" r="2.6"/>
+      <text class="bay-id" x="${faceX(y) - 55}" y="${y + 13}" text-anchor="end">G${i + 1}</text>
     </g>`).join('');
 
-  const HUD = [['lvl', 'RESERVOIR LEVEL'], ['peak', 'PEAK RELEASE'], ['int', 'FLOW INTENSITY'], ['sed', 'SEDIMENT LOAD'], ['gate', 'GATES']];
+  const HUD = [['lvl', 'RESERVOIR LEVEL'], ['peak', 'PEAK RELEASE'], ['int', 'FLOW INTENSITY'], ['sed', 'SEDIMENT LOAD'], ['gate', 'GATES'], ['open', 'GATE OPENING'], ['cap', 'CHANNEL CAPACITY']];
   const hudSvg = HUD.map(([id, l], i) => `<text class="hud-l" x="534" y="${35 + i * 20}" data-h="${id}-l">${l}</text><text class="hud-v" x="782" y="${35 + i * 20}" text-anchor="end" data-h="${id}-v">–</text>`).join('');
   const hudHtml = HUD.map(([id, l]) => `<div><span data-h="${id}-l">${l}</span><b data-h="${id}-v">–</b></div>`).join('');
   const jetsSvg = BAYS.map(() => '<g class="jet"><path class="jet-body"/><path class="jet-core"/></g>').join('');
@@ -66,6 +67,7 @@ const Scene = (function () {
     <rect x="700" y="290" width="100" height="110" fill="url(#sc-sea)"/>
     <path d="M436 334 C520 348 600 318 700 336" fill="none" stroke="#3de0ff" stroke-opacity=".16" stroke-width="47" stroke-linecap="round"/>
     <path d="M436 334 C520 348 600 318 700 336" fill="none" stroke="#0a1426" stroke-width="44" stroke-linecap="round"/>
+    <path id="sc-over" d="M436 334 C520 348 600 318 700 336" fill="none" stroke="#ff6b6b" stroke-width="40" stroke-dasharray="5 7" stroke-linecap="round" opacity="0"/>
     <path id="sc-river" d="M436 334 C520 348 600 318 700 336" fill="none" stroke="#5d7f9c" stroke-width="26" stroke-linecap="round"/>
     <path id="sc-river-fade" d="M436 334 C520 348 600 318 700 336" fill="none" stroke="url(#sc-rivfade)" stroke-width="26" stroke-linecap="round"/>
     <path id="sc-river-deep" d="M436 334 C520 348 600 318 700 336" fill="none" stroke="#0b2f57" stroke-opacity=".38" stroke-width="12" stroke-linecap="round"/>
@@ -110,8 +112,18 @@ const Scene = (function () {
       <path d="M429 238 L470 224" stroke="#ffb454" stroke-opacity=".6" fill="none" stroke-width="1"/>
       <text x="720" y="276">SEA</text>
     </g>
+    <g id="sc-gauge" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, monospace" font-size="9" letter-spacing="1" display="none">
+      <text class="sc-gt" x="560" y="188" fill="#8fa3bf" letter-spacing="1.5">RELEASE vs CHANNEL CAPACITY</text>
+      <rect x="560" y="196" width="220" height="9" rx="4.5" fill="#04101f" stroke="#3de0ff" stroke-opacity=".3"/>
+      <rect id="sc-g-in" x="560" y="196" width="0" height="9" rx="4.5" fill="#3de0ff"/>
+      <rect id="sc-g-out" x="560" y="196" width="0" height="9" fill="#ff6b6b"/>
+      <line id="sc-g-cap" x1="0" x2="0" y1="192" y2="209" stroke="#e8f1ff" stroke-width="1.6"/>
+      <text class="sc-gt" id="sc-g-rel" x="560" y="222" fill="#cfefff"></text>
+      <text class="sc-gt" id="sc-g-state" x="780" y="222" text-anchor="end" font-weight="700"></text>
+      <text class="sc-gt" id="sc-g-capt" x="0" y="234" text-anchor="middle" fill="#e8f1ff"></text>
+    </g>
     <g id="sc-hud-svg" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, monospace" font-size="12" letter-spacing=".5">
-      <rect x="522" y="12" width="270" height="116" rx="8" fill="#04101f" fill-opacity=".74" stroke="#3de0ff" stroke-opacity=".3"/>
+      <rect x="522" y="12" width="270" height="${16 + HUD.length * 20}" rx="8" fill="#04101f" fill-opacity=".74" stroke="#3de0ff" stroke-opacity=".3"/>
       ${hudSvg}
     </g>
   </svg>
@@ -120,6 +132,7 @@ const Scene = (function () {
   const q = s => host.querySelector(s);
   const level = q('#sc-level'), tint = q('#sc-tint'), splash = q('#sc-splash'), streams = [...host.querySelectorAll('.sc-stream')], river = q('#sc-river'), delta = q('#sc-delta');
   const rFade = q('#sc-river-fade'), rDeep = q('#sc-river-deep'), glints = [...host.querySelectorAll('.sc-glint')];
+  const gauge = q('#sc-gauge'), gIn = q('#sc-g-in'), gOut = q('#sc-g-out'), gCap = q('#sc-g-cap'), gRel = q('#sc-g-rel'), gState = q('#sc-g-state'), gCapT = q('#sc-g-capt'), over = q('#sc-over');
   const plume = q('#sc-plume'), rp = q('#sc-river'), body = q('#sc-waterbody'), surf = q('#sc-surface'), sheen = q('#sc-sheen'), mark = q('#sc-mark'), markT = q('#sc-mark-t');
   const jets = [...host.querySelectorAll('.jet')], bodies = [...host.querySelectorAll('.jet-body')], cores = [...host.querySelectorAll('.jet-core')];
   const SX = BAYS.map(y => faceX(y) - 4), SY = BAYS.map(y => y + 10), LX = [466, 486, 508], LY = 333;   // bay outlets -> landing points in the river
@@ -130,7 +143,7 @@ const Scene = (function () {
   const SPAN = Y_BED - Y_FULL;
 
   /* ----- state: tgt = what app.js asked for, cur = what is drawn (level eases toward it) ----- */
-  const tgt = { storage: 55, gate: 0, sed: .5, delta: 0, peak: null, src: null, ssc: null }, cur = { storage: 55 };
+  const tgt = { storage: 55, gate: 0, sed: .5, delta: 0, peak: null, src: null, ssc: null, cap: null, eff: null, over: null }, cur = { storage: 55 };
   let raf = 0, last = 0, phase = 0;
   const isRunning = () => host.classList.contains('running');
 
@@ -235,7 +248,30 @@ const Scene = (function () {
     setH('peak', v == null ? '–' : fmt(v) + ' m³/s', tgt.src === 'lijin' ? 'PEAK FLOW (LIJIN)' : 'PEAK RELEASE');
     return v;
   }
-  document.addEventListener('input', e => { if (e.target.id === 'c-peak') refreshPeak(); });
+  /* ----- release vs channel capacity: both values come from the app (slider/model); no numbers typed here.
+     rel = peak actually delivered once a run's result is known, else the planned peak; "over" is the model's own flag after a run ----- */
+  const GX = 560, GW = 220;
+  function drawGauge() {
+    const pk = refreshPeak(), cap = tgt.cap;
+    if (pk == null || cap == null) { gauge.setAttribute('display', 'none'); over.setAttribute('opacity', 0); setH('cap', '–'); return; }
+    gauge.removeAttribute('display');
+    const known = tgt.eff != null && pk === tgt.peak, rel = known ? tgt.eff : pk, cut = known && rel < pk - 0.5;
+    const isOver = known && tgt.over != null ? tgt.over : rel > cap, max = Math.max(5000, cap, rel), X = v => GX + GW * v / max;
+    gIn.setAttribute('width', Math.max(0, X(Math.min(rel, cap)) - GX).toFixed(1));
+    gOut.setAttribute('x', X(cap).toFixed(1)); gOut.setAttribute('width', isOver ? Math.max(0, X(rel) - X(cap)).toFixed(1) : 0);
+    gCap.setAttribute('x1', X(cap).toFixed(1)); gCap.setAttribute('x2', X(cap).toFixed(1));
+    const cx = Math.min(GX + GW - 52, Math.max(GX + 52, X(cap)));
+    gCapT.setAttribute('x', cx.toFixed(1)); gCapT.textContent = (tgt.src === 'lijin' ? 'BANKFULL ' : 'CAPACITY ') + fmt(cap);
+    gRel.textContent = (cut ? 'DELIVERED ' : tgt.src === 'lijin' ? 'PEAK FLOW ' : 'RELEASE ') + fmt(rel) + ' m³/s';
+    gState.textContent = isOver ? 'ABOVE CAPACITY' : 'WITHIN CAPACITY'; gState.setAttribute('fill', isOver ? '#ff8f8f' : '#9ff3ff');
+    over.setAttribute('opacity', isOver ? .6 : 0);
+    setH('cap', fmt(cap) + ' m³/s', tgt.src === 'lijin' ? 'BANKFULL CAPACITY' : 'CHANNEL CAPACITY');
+    tgt.isOver = isOver;
+  }
+  document.addEventListener('input', e => {
+    if (e.target.id === 'c-peak') drawGauge();
+    if (e.target.id === 'c-capacity') { tgt.cap = +e.target.value; tgt.eff = null; tgt.over = null; drawGauge(); }   // sandbox: capacity slider moved
+  });
 
   /* ----- water body + wave surface + level marker ----- */
   function drawWater() {
@@ -263,13 +299,14 @@ const Scene = (function () {
     if (run || Math.abs(tgt.storage - cur.storage) > .05) kick();
   }
   function kick() { if (!raf && !document.hidden && onscreen) { last = performance.now(); raf = requestAnimationFrame(frame); } }
-  new MutationObserver(() => { kick(); refreshPeak(); }).observe(host, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(() => { kick(); drawGauge(); }).observe(host, { attributes: true, attributeFilter: ['class'] });
   let onscreen = true;                                              // no animation work while the diagram is scrolled out of view
   new IntersectionObserver(es => { onscreen = es[0].isIntersecting; kick(); }).observe(host);
   document.addEventListener('visibilitychange', kick);
 
   function update(o) {
-    Object.assign(tgt, { storage: o.storage, gate: Math.min(1, o.gate), sed: o.sed, delta: o.delta, peak: o.peak ?? null, src: o.src || null, ssc: o.ssc ?? null });
+    Object.assign(tgt, { storage: o.storage, gate: Math.min(1, o.gate), sed: o.sed, delta: o.delta, peak: o.peak ?? null, src: o.src || null, ssc: o.ssc ?? null,
+      cap: o.cap ?? null, eff: o.eff ?? null, over: o.over ?? null });
     o = tgt;
     tint.setAttribute('opacity', (o.sed * 0.28).toFixed(2));
     BAYS.forEach((_, i) => {
@@ -288,14 +325,16 @@ const Scene = (function () {
     const nOpen = BAYS.filter((_, i) => clamp01(o.gate * BAYS.length - i) > .02).length;
     const inten = o.gate <= .001 ? 'IDLE' : o.gate < .34 ? 'LOW' : o.gate < .67 ? 'MEDIUM' : 'HIGH';
     const sedTxt = o.ssc != null ? o.ssc + ' kg/m³ MAX' : o.sed < .35 ? 'LOW' : o.sed < .7 ? 'MEDIUM' : 'HIGH';
-    const pk = refreshPeak();
+    const open = BAYS.map((_, i) => Math.round(clamp01(o.gate * BAYS.length - i) * 100));
+    setH('open', open.join('/') + ' %');
+    drawGauge(); const pk = refreshPeak();
     setH('int', inten); setH('sed', sedTxt, o.ssc != null ? 'SEDIMENT CONC.' : 'SEDIMENT LOAD');
     setH('gate', nOpen ? nOpen + ' / ' + BAYS.length + ' OPEN' : 'CLOSED');
-    host.querySelector('svg').setAttribute('aria-label', `Dam schematic. Reservoir ${hudVal.lvl}. ${pk == null ? '' : 'Peak ' + fmt(pk) + ' cubic metres per second. '}Flow ${inten.toLowerCase()}. Gates ${hudVal.gate.toLowerCase()}.`);
+    host.querySelector('svg').setAttribute('aria-label', `Dam schematic. Reservoir ${hudVal.lvl}. ${pk == null ? '' : 'Peak ' + fmt(pk) + ' cubic metres per second. '}Flow ${inten.toLowerCase()}. Gates ${hudVal.gate.toLowerCase()}. ${tgt.cap == null ? '' : 'Channel capacity ' + fmt(tgt.cap) + ' cubic metres per second, ' + (tgt.isOver ? 'release above capacity.' : 'release within capacity.')}`);
     delta.setAttribute('rx', 20 + o.delta * 45);
     plume.setAttribute('rx', 30 + o.delta * 60); plume.setAttribute('opacity', (o.delta * .75).toFixed(2));
     kick();
   }
-  fit(); drawWater(); drawFlow(false);
+  fit(); drawWater(); drawFlow(false); drawGauge();
   return { update, host };
 })();

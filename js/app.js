@@ -14,10 +14,10 @@ const CONFIG = {
     { id: 'capacity', label: 'Channel capacity', unit: 'm³/s', min: 1000, max: 6000, step: 100, def: 2800, scope: 'sandbox' }
   ],
   meters: [
-    { id: 'flood', label: 'Flood safety', color: '#ffc857' },
-    { id: 'reservoir', label: 'Reservoir health', color: '#ff8a4c' },
-    { id: 'supply', label: 'Water supply', color: '#3de0ff' },
-    { id: 'ecology', label: 'Ecology', color: '#6fbf8a' }
+    { id: 'flood', label: 'Flood safety', color: '#ffc857', desc: 'Drops when the peak release is larger than the channel can carry.' },
+    { id: 'reservoir', label: 'Reservoir health', color: '#ff8a4c', desc: 'Rewards flushing sediment out and keeping storage near mid-level.' },
+    { id: 'supply', label: 'Water supply', color: '#3de0ff', desc: 'Share of demand served, plus water kept for next year and the reserve.' },
+    { id: 'ecology', label: 'Ecology', color: '#6fbf8a', desc: 'Rewards longer high flows and sediment and water reaching the delta.' }
   ]
 };
 
@@ -30,6 +30,8 @@ const LESSONS = [
 
 const $ = id => document.getElementById(id);
 let mode = 'challenge', busy = false, charts = {};
+// Run button: disabled + aria-busy while a regulation is animating (spinner is CSS)
+function setRunning(on) { const b = $('runBtn'); b.disabled = on; if (on) b.setAttribute('aria-busy', 'true'); else b.removeAttribute('aria-busy'); }
 let data = { rounds: [], events: [], timeline: [] };
 
 /* ---------- tabs and modes ---------- */
@@ -66,14 +68,25 @@ function buildControls() {
     }
     $('controls').appendChild(w);
   });
-  $('meterList').innerHTML = CONFIG.meters.map(m =>
-    `<div class="meter"><span>${m.label}: <b id="mv-${m.id}">–</b></span>
-     <div class="bar"><i id="m-${m.id}" style="background:${m.color}"></i></div></div>`).join('');
+  const W = GAME_CONFIG.weights, O = GAME_CONFIG.outcome;
+  const bar = id => `<div class="bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-labelledby="mn-${id}" id="mb-${id}">
+      <i id="m-${id}"></i><u class="tick" style="left:${id === 'total' ? O.failScore : O.failBelow}%"></u><u class="tick" style="left:${O.passAbove}%"></u></div>`;
+  const foot = id => `<div class="meter-foot"><span class="status" id="ms-${id}" data-s="idle">Not run yet</span><span class="delta" id="md-${id}"></span></div>`;
+  const wTxt = CONFIG.meters.map(m => `${m.label.toLowerCase()} ${Math.round(W[m.id] * 100)}%`).join(', ');
+  $('meterList').innerHTML =
+    `<div class="meter total"><div class="meter-head"><span class="meter-name" id="mn-total">Total score</span>
+       <span class="meter-val"><b id="mv-total">–</b><small>/100</small></span></div>${bar('total')}${foot('total')}
+       <p class="meter-desc">Weighted average: ${wTxt}.</p></div>` +
+    CONFIG.meters.map(m => `<div class="meter"><div class="meter-head"><span class="meter-name" id="mn-${m.id}">${m.label}</span>
+       <span class="meter-val"><b id="mv-${m.id}">–</b><small>/100</small></span></div>${bar(m.id)}${foot(m.id)}
+       <p class="meter-desc">${m.desc}</p></div>`).join('') +
+    `<p class="meter-key small">Bar marks: ${O.failBelow} (below this a round fails) and ${O.passAbove} (needed for a clean pass). Teaching thresholds, not real operating limits.</p>`;
 }
 const setPct = el => el.style.setProperty('--pct', ((el.value - el.min) / (el.max - el.min) * 100) + '%');   // slider fill
 function setControl(id, v) {
   const el = $('c-' + id); el.value = v; if (el.type === 'range') setPct(el);
   const o = $('o-' + id); if (o) o.textContent = v;
+  updateDock();
 }
 function getInputs() {
   const o = {};
@@ -88,6 +101,63 @@ function setVerdict(status, weak) {
   v.textContent = VERDICT[status] + (status === 'fail' && weak.length ? ': ' + weak.join(', ') + ' too low' : '') + '. Lesson learnt below.';
 }
 
+/* ---------- results card: idle state, summary, reasons and suggestions (all read from the model result) ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtN = n => Math.round(n).toLocaleString('en-US');
+function lastRun() { const h = mode === 'challenge' ? Game.history : sandboxHist; return h.length >= 2 ? h[h.length - 2] : null; }
+function showResultsIdle(msg) {
+  $('resIdle').hidden = false; $('resBody').hidden = true; setVerdict(null);
+  $('resIdleText').textContent = msg || 'Set the peak release, duration and reserve, then press Run regulation.';
+  $('rsScore').dataset.v = 0; $('teaching').textContent = ''; $('nextBtn').hidden = true;
+}
+// one sentence per meter: which model quantity drove the score
+function reasons(res, inp) {
+  const eff = effPeak(res, inp), cap = Math.round(inp.capacity), st = Math.round(res.storage);
+  const flood = res.overBankfull ? `The peak that reached the river, ${fmtN(eff)} m³/s, was above the channel capacity of ${fmtN(cap)} m³/s, and the penalty grows with the overshoot.`
+    : inp.inflowPeak && eff < 0.6 * inp.inflowPeak ? `The peak stayed within capacity (${fmtN(cap)} m³/s), but the release was small next to the ${fmtN(inp.inflowPeak)} m³/s flood arriving, which adds flood risk.`
+    : res.storage > 90 ? `The peak stayed within capacity, but the reservoir ended ${st}% full, which cuts the score.`
+    : `The peak of ${fmtN(eff)} m³/s stayed within the channel capacity of ${fmtN(cap)} m³/s.`;
+  const reservoir = (res.sedStored > 0 ? `${res.sedStored} sediment units stayed in the reservoir, which lowers the score and takes up storage.`
+    : `Net flushing removed ${Math.abs(res.sedStored)} sediment units, which helps.`) +
+    ` ${res.sedStock} units of old deposit remain` + (Math.abs(res.storage - 50) > 25 ? `, and storage ended at ${st}%, far from mid-level.` : '.');
+  const supply = res.overdraw > 0 ? `The planned release was more than the water left after the ${inp.reserve}% reserve, so it was cut back by ${res.overdraw}% of the reservoir volume.`
+    : `${inp.reserve}% of the water was reserved and ${st}% of the reservoir was left after supplying users.`;
+  const ecology = `The release lasted ${inp.days} days, ${fmtN(res.deltaFlow)} m³/s reached the delta and ${res.sedOut} sediment units passed the dam` +
+    (eff > 4500 ? '; very high peaks start to lower this score.' : '.');
+  return { flood, reservoir, supply, ecology };
+}
+// suggestions point at levers and trade-offs; they never set the controls
+function suggestions(res, inp, meters) {
+  const low = Object.keys(meters).filter(k => meters[k] < GAME_CONFIG.outcome.passAbove).sort((x, y) => meters[x] - meters[y]).slice(0, 2), out = [];
+  low.forEach(k => {
+    if (k === 'flood') out.push(res.overBankfull ? `Flood safety: bring the peak release closer to the channel capacity (${fmtN(inp.capacity)} m³/s). Weaker flows flush less sediment, so watch reservoir health.`
+      : 'Flood safety: a larger release, still below the channel capacity, reduces risk when a big flood is arriving. It uses more water.');
+    if (k === 'reservoir') out.push(res.sedStored > 0 ? 'Reservoir health: flushing was too weak for the sediment arriving. A higher peak, held for longer and kept below capacity, moves more sediment out.'
+      : 'Reservoir health: storage ended far from mid-level. Changing how much water you release or reserve moves it back.');
+    if (k === 'supply') out.push(res.overdraw > 0 ? 'Water supply: the release was cut back by the reserve. Shorten or lower the planned release, or reconsider the reserve, because a higher reserve leaves less water to release.'
+      : 'Water supply: keeping more water behind the dam, with a shorter release or a higher reserve, helps users and next year.');
+    if (k === 'ecology') out.push(inp.days < 10 ? 'Ecology: a longer release helps the delta, but it uses more water that supply also needs.' : 'Ecology: more flow and sediment reaching the delta helps, so check the peak and the duration together.');
+  });
+  if (!out.length) out.push('Every meter is healthy. Try a different trade-off, for example a lower peak or a shorter release, and compare the runs in the history below.');
+  return out;
+}
+function renderResults(res, inp, meters, violations) {
+  $('resIdle').hidden = true; $('resBody').hidden = false;
+  const W = GAME_CONFIG.weights, total = Math.round(Object.keys(W).reduce((s, k) => s + W[k] * meters[k], 0)), last = lastRun();
+  const sb = $('rsScore'), [s] = meterStatus(total, true); sb.dataset.s = s; tweenNumber(sb, total);
+  const dl = $('rsDelta');
+  if (last) { const d = total - Math.round(last.score); dl.dataset.d = d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
+    dl.textContent = d === 0 ? 'no change vs last run' : (d > 0 ? '+' : '−') + Math.abs(d) + ' vs last run'; } else { dl.textContent = ''; dl.dataset.d = ''; }
+  $('resultText').textContent = explain(res, inp);
+  const why = reasons(res, inp);
+  $('resWhy').innerHTML = CONFIG.meters.map(c => {
+    const v = Math.round(meters[c.id]), [ms, label] = meterStatus(v), p = last ? Math.round(last.meters[c.id]) : null, d = p == null ? null : v - p;
+    return `<li data-s="${ms}"><div class="why-head"><b>${c.label}</b><span class="why-v">${v}</span><span class="status" data-s="${ms}">${label}</span>` +
+      (d == null ? '' : `<span class="delta" data-d="${d > 0 ? 'up' : d < 0 ? 'down' : 'flat'}">${d === 0 ? 'no change' : (d > 0 ? '+' : '−') + Math.abs(d)}</span>`) + `</div><p>${why[c.id]}</p></li>`;
+  }).join('') + (violations || []).map(v => `<li data-s="bad" class="why-policy"><div class="why-head"><b>Policy not met</b></div><p>${esc(v)}</p></li>`).join('');
+  $('resNext').innerHTML = suggestions(res, inp, meters).map(t => `<li>${esc(t)}</li>`).join('');
+}
+
 /* ---------- run history graph (Challenge: every round; Sandbox: every run) ---------- */
 let sandboxHist = [];
 function drawRunChart() {
@@ -98,14 +168,46 @@ function drawRunChart() {
     data: { labels: h.map((x, i) => (mode === 'challenge' ? 'Round ' : 'Run ') + (x.round || i + 1)),
       datasets: [...CONFIG.meters.map(m => line(m.label, m.id, m.color)), line('Total score', 'score', '#ffffff', [6, 4])] } });
 }
+const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function tweenNumber(el, to) {            // count the shown number to its new value (instant if reduced motion)
+  cancelAnimationFrame(el._raf);
+  const from = +el.dataset.v || 0; el.dataset.v = to;
+  if (REDUCE_MOTION || from === to) { el.textContent = to; return; }
+  const t0 = performance.now(), ms = 700;
+  const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = Math.round(from + (to - from) * e); if (k < 1) el._raf = requestAnimationFrame(step); };
+  el._raf = requestAnimationFrame(step);
+}
+// status uses the game's own thresholds (GAME_CONFIG.outcome), nothing new is invented here
+function meterStatus(v, isTotal) {
+  const O = GAME_CONFIG.outcome, lo = isTotal ? O.failScore : O.failBelow;
+  return v < lo ? ['bad', 'Critical'] : v < O.passAbove ? ['warn', 'Needs attention'] : ['ok', 'Healthy'];
+}
+function setMeter(id, v, prev, isTotal) {            // v: rounded score or null (idle); prev: previous run's score or null
+  const bar = $('m-' + id), st = $('ms-' + id), dl = $('md-' + id), box = $('mb-' + id);
+  if (v == null) {
+    bar.style.width = '0%'; bar.dataset.s = 'idle'; $('mv-' + id).textContent = '–'; $('mv-' + id).dataset.v = 0;
+    cancelAnimationFrame($('mv-' + id)._raf); box.removeAttribute('aria-valuenow'); box.removeAttribute('aria-valuetext');
+    st.dataset.s = 'idle'; st.textContent = 'Not run yet'; dl.textContent = ''; dl.dataset.d = ''; return;
+  }
+  const [s, label] = meterStatus(v, isTotal);
+  bar.style.width = v + '%'; bar.dataset.s = s; tweenNumber($('mv-' + id), v);
+  box.setAttribute('aria-valuenow', v); box.setAttribute('aria-valuetext', `${v} out of 100, ${label}`);
+  st.dataset.s = s; st.textContent = label;
+  if (prev == null) { dl.textContent = ''; dl.dataset.d = ''; }
+  else { const d = v - prev; dl.dataset.d = d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
+    dl.textContent = d === 0 ? 'no change vs last run' : (d > 0 ? '+' : '−') + Math.abs(d) + ' vs last run'; }
+}
 function setMeters(m) {
-  CONFIG.meters.forEach(c => {
-    const v = m ? Math.round(m[c.id]) : 0;
-    $('m-' + c.id).style.width = v + '%'; $('mv-' + c.id).textContent = m ? v : '–';
-  });
+  const h = mode === 'challenge' ? Game.history : sandboxHist, last = h.length >= 2 ? h[h.length - 2] : null;   // the run before this one
+  CONFIG.meters.forEach(c => setMeter(c.id, m ? Math.round(m[c.id]) : null, m && last ? Math.round(last.meters[c.id]) : null));
+  const W = GAME_CONFIG.weights;
+  const tot = m ? Math.round(Object.keys(W).reduce((s, k) => s + W[k] * m[k], 0)) : null;
+  setMeter('total', tot, m && last ? Math.round(last.score) : null, true);
 }
 function showState(storage, capacity) {
-  $('stateBox').textContent = `Reservoir storage left: ${Math.round(storage)}%. Channel capacity: ${Math.round(capacity)} m³/s.`;
+  $('stateBox').innerHTML = `<dl class="state"><div><dt>Reservoir storage</dt><dd>${Math.round(storage)} <small>% of capacity</small></dd></div>
+    <div><dt>Channel capacity</dt><dd>${Math.round(capacity).toLocaleString('en-US')} <small>m³/s</small></dd></div></dl>`;
 }
 
 /* ---------- schematic ---------- */
@@ -120,16 +222,18 @@ new MutationObserver(() => {
 }).observe(Scene.host, { attributes: true, attributeFilter: ['class'] });
 function drawSchematic(o) { Scene.update(o); }   // o: storage %, gate 0..1, sed 0..1, delta 0..1 (see js/schematic.js)
 // Animate ~4 s: open gate, level moves to the end value, jets/river flow, then close the gate
+// peak the release actually reached: the planned peak is cut back when the supply reserve limits the water (model: releaseVol / plannedVol)
+const effPeak = (res, inp) => res.plannedVol > 0 ? inp.peak * res.releaseVol / res.plannedVol : inp.peak;
 function animateRun(o, done) {
   const svg = Scene.host;
-  drawSchematic({ storage: o.storage0, gate: 0, sed: o.sed, delta: 0, peak: o.peak, src: o.src, ssc: o.ssc });
+  drawSchematic({ storage: o.storage0, gate: 0, sed: o.sed, delta: 0, peak: o.peak, src: o.src, ssc: o.ssc, cap: o.cap, eff: o.eff, over: o.over });
   requestAnimationFrame(() => {
     svg.classList.add('running');
-    drawSchematic({ storage: o.storage1, gate: o.peak / 5000, sed: o.sed, delta: o.delta, peak: o.peak, src: o.src, ssc: o.ssc });
+    drawSchematic({ storage: o.storage1, gate: o.peak / 5000, sed: o.sed, delta: o.delta, peak: o.peak, src: o.src, ssc: o.ssc, cap: o.cap, eff: o.eff, over: o.over });
   });
   setTimeout(() => {
     svg.classList.remove('running');
-    drawSchematic({ storage: o.storage1, gate: 0, sed: o.sed, delta: o.delta, peak: o.peak, src: o.src, ssc: o.ssc });
+    drawSchematic({ storage: o.storage1, gate: 0, sed: o.sed, delta: o.delta, peak: o.peak, src: o.src, ssc: o.ssc, cap: o.cap, eff: o.eff, over: o.over });
     done();
   }, CONFIG.runMs);
 }
@@ -150,12 +254,13 @@ function explain(r, inp) {
 
 /* ---------- run button (Challenge and Sandbox) ---------- */
 $('runBtn').addEventListener('click', () => {
-  if (busy) return; busy = true; $('runBtn').disabled = true;
+  if (busy) return; busy = true; setRunning(true);
   if (mode === 'challenge') runChallenge(); else runSandbox();
 });
-function finishRun(res, inp, meters, extra) {
+function finishRun(res, inp, meters, violations) {
+  $('runBtn').removeAttribute('aria-busy');   // Challenge keeps the button disabled until Next round; Sandbox re-enables it
   setMeters(meters); drawRunChart(); showState(res.storage, res.capacity);
-  $('resultText').textContent = explain(res, inp) + (extra || '');
+  renderResults(res, inp, meters, violations);
   busy = false;
 }
 function runSandbox() {
@@ -163,12 +268,20 @@ function runSandbox() {
   const sc = Object.keys(GAME_CONFIG.weights).reduce((s, k) => s + GAME_CONFIG.weights[k] * res.meters[k], 0);
   sandboxHist.push({ round: sandboxHist.length + 1, meters: res.meters, score: sc });
   animateRun({ storage0: inp.storage, storage1: res.storage, peak: inp.peak, sed: { low: .2, medium: .5, high: .9 }[inp.sediment],
-    delta: Math.min(1, res.sedOut / 40) }, () => {
+    delta: Math.min(1, res.sedOut / 40), cap: inp.capacity, eff: effPeak(res, inp), over: res.overBankfull }, () => {
     finishRun(res, inp, res.meters);
     setControl('storage', Math.round(res.storage / 5) * 5); setControl('capacity', Math.round(res.capacity / 100) * 100); // carry on
-    $('runBtn').disabled = false;
+    setRunning(false);
   });
 }
+
+/* Dock readout: echoes the current slider values so the Run button sits next to what it will run */
+function updateDock() {
+  const v = id => $('c-' + id) ? +$('c-' + id).value : null;
+  if (v('peak') == null || v('days') == null || v('reserve') == null) return;
+  $('dockSummary').innerHTML = `Release <b>${v('peak').toLocaleString('en-US')}</b> m³/s for <b>${v('days')}</b> days, <b>${v('reserve')}</b>% of water reserved`;
+}
+$('controls').addEventListener('input', updateDock);
 
 /* ---------- Challenge UI ---------- */
 function startGame() {
@@ -185,18 +298,18 @@ function renderRound() {
     <span class="chip">Water: ${r.water_availability}</span><span class="chip">Sediment: ${r.sediment_level}</span>
     <span class="chip">Demand: ${r.demand_level}</span>${pol}` +
     (hints ? `<p class="small">Hint: keep the peak release below the channel capacity (${Math.round(Game.capacity)} m³/s now), and keep enough water reserved for supply.</p>` : '');
-  $('resultText').textContent = 'Set the controls, then press Run regulation.';
-  $('teaching').textContent = ''; $('nextBtn').hidden = true; $('runBtn').disabled = false; busy = false;
-  setVerdict(null); drawRunChart();
+  showResultsIdle(); setRunning(false); busy = false;
+  drawRunChart();
   setMeters(null); showState(Game.storage, Game.capacity);
-  drawSchematic({ storage: Game.storage, gate: 0, sed: { low: .2, medium: .5, high: .9 }[r.sediment_level], delta: 0 });
+  drawSchematic({ storage: Game.storage, gate: 0, sed: { low: .2, medium: .5, high: .9 }[r.sediment_level], delta: 0, cap: Game.capacity });
 }
 function runChallenge() {
   const r = Game.round(), s0 = Game.storage;
   const out = Game.play(getInputs());
   animateRun({ storage0: s0, storage1: out.result.storage, peak: out.inputs.peak,
-    sed: { low: .2, medium: .5, high: .9 }[r.sediment_level], delta: Math.min(1, out.result.sedOut / 40) }, () => {
-    finishRun(out.result, out.inputs, out.meters, ' ' + out.violations.join(' '));
+    sed: { low: .2, medium: .5, high: .9 }[r.sediment_level], delta: Math.min(1, out.result.sedOut / 40),
+    cap: out.inputs.capacity, eff: effPeak(out.result, out.inputs), over: out.result.overBankfull }, () => {
+    finishRun(out.result, out.inputs, out.meters, out.violations);
     setVerdict(out.status, out.weak);
     $('teaching').textContent = 'Lesson: ' + r.teaching_note;
     $('nextBtn').textContent = Game.isLast() ? 'See debrief' : 'Next round'; $('nextBtn').hidden = false;
@@ -207,10 +320,10 @@ $('resetBtn').addEventListener('click', () => mode === 'challenge' ? startGame()
 $('difficulty').addEventListener('change', startGame);
 function resetSandbox() {
   CONFIG.controls.forEach(c => setControl(c.id, c.def));
-  sandboxHist = []; setVerdict(null); drawRunChart();
-  setMeters(null); showState(55, 2800); $('resultText').textContent = 'Set the controls, then press Run regulation.';
-  $('runBtn').disabled = false; busy = false;
-  drawSchematic({ storage: 55, gate: 0, sed: .5, delta: 0 });
+  sandboxHist = []; showResultsIdle(); drawRunChart();
+  setMeters(null); showState(55, 2800); 
+  setRunning(false); busy = false;
+  drawSchematic({ storage: 55, gate: 0, sed: .5, delta: 0, cap: CONFIG.controls.find(c => c.id === 'capacity').def });
 }
 
 /* ---------- Debrief ---------- */
@@ -281,14 +394,14 @@ function showEvent() {
     data: { labels: data.events.map(x => String(x.year)),
       datasets: [{ label: 'Sediment delivered to the sea, Lijin gauge (Mt)', data: data.events.map(x => x.sediment_to_sea_mt),
         backgroundColor: data.events.map((x, i) => i === idx ? '#ffc857' : '#2c4a73') }] } });
-  drawSchematic({ storage: 60, gate: 0, sed: Math.min(1, e.max_ssc / 80), delta: 0, peak: e.peak_flow_lijin, src: 'lijin', ssc: e.max_ssc });
+  drawSchematic({ storage: 60, gate: 0, sed: Math.min(1, e.max_ssc / 80), delta: 0, peak: e.peak_flow_lijin, src: 'lijin', ssc: e.max_ssc, cap: e.bankfull_capacity || null });
 }
 $('eventSel').addEventListener('change', showEvent);
 $('replayBtn').addEventListener('click', () => {
   const e = data.events[$('eventSel').value];
   // The reservoir levels 60 -> 45 are only illustrative: the dataset has no reservoir level
   animateRun({ storage0: 60, storage1: 45, peak: e.peak_flow_lijin, sed: Math.min(1, e.max_ssc / 80),
-    delta: Math.min(1, e.sediment_to_sea_mt / 140), src: 'lijin', ssc: e.max_ssc }, () => {});
+    delta: Math.min(1, e.sediment_to_sea_mt / 140), src: 'lijin', ssc: e.max_ssc, cap: e.bankfull_capacity || null }, () => {});
 });
 
 /* ---------- start-up ---------- */
@@ -297,7 +410,7 @@ async function init() {
   try {
     const get = n => fetch(`data/${n}.json`).then(r => r.json());
     [data.rounds, data.events, data.timeline] = await Promise.all([get('rounds'), get('events'), get('timeline')]);
-  } catch (err) { $('resultText').textContent = 'Could not load data files. Serve the folder over http (see README).'; return; }
+  } catch (err) { showResultsIdle('Could not load data files. Serve the folder over http (see README).'); return; }
   $('eventSel').innerHTML = data.events.map((e, i) => `<option value="${i}">${e.year}</option>`).join('');
   // Timeline: each entry lists its sources as links
   $('timelineList').innerHTML = data.timeline.map(t => {
