@@ -62,7 +62,7 @@
   <main>
     <!-- ---------- SIMULATOR ---------- -->
     <section id="tab-simulator" class="tabpanel">
-      <div class="banner">Simplified educational model. Not a forecast.</div>
+      <div class="banner" id="banner">Simplified educational model. Not a forecast.</div>
 
       <div class="topbar">
         <div class="toggle" role="group" aria-label="Mode">
@@ -106,6 +106,7 @@
         <div class="bottom" data-modes="challenge sandbox">
           <div class="card" id="results" aria-live="polite">
             <h3>Regulation results</h3>
+            <div id="replayNote" class="replay-tag" role="status" hidden><span id="replayNoteText"></span><button id="replayBack" type="button">Back to current</button></div>
             <!-- before the first run (and after Reset / each new round) -->
             <div id="resIdle" class="res-idle">
               <p id="resIdleText">Set the peak release, duration and reserve, then press Run regulation.</p>
@@ -126,8 +127,13 @@
             </div>
           </div>
           <div class="card" id="runChartCard">
-            <h3>Run history</h3>
-            <div class="chartbox mini"><canvas id="runChart"></canvas></div>
+            <div class="hist-head"><h3>Run history</h3><p id="histBest" class="hist-best" hidden></p></div>
+            <div id="histIdle" class="res-idle"><p id="histIdleText">No runs yet.</p><p class="small">Every run is saved here so you can compare settings and scores side by side, spot your best run and replay any of them.</p></div>
+            <div id="histBody" hidden>
+              <div class="hist-scroll"><table id="histTable" class="hist-table"></table></div>
+              <div class="chartbox mini"><canvas id="runChart" role="img" aria-label="Line chart of the four meter scores and the total score for every run"></canvas></div>
+              <p class="small">Dashed lines mark the teaching thresholds used for the status colours. Star = best total score.</p>
+            </div>
           </div>
         </div>
 
@@ -217,7 +223,7 @@
       </table>
       </div>
 
-      <h3>About the real data</h3>
+      <h3 id="about-real">About the real data</h3>
       <ul>
         <li>Replay values come from a published table of 15 regulation events (2002 to 2013) measured at the Lijin gauge, near the sea. They are <strong>not</strong> the dam release itself.</li>
         <li>Duration is the end date minus the start date. In 2007 and 2010 there were several events and the years combine them.</li>

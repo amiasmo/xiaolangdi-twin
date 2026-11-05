@@ -1,5 +1,47 @@
 /* app.js - tabs, dashboard UI, Sandbox, Replay, Challenge display. Physics is in model.js, rules in game.js. */
 
+/* ===== GLOSSARY: plain-language definitions shown as tooltips (hover, keyboard focus or tap) ===== */
+const GLOSSARY = {
+  peak: ['Peak release discharge', 'The largest flow let out of the dam during the regulation, in cubic metres per second (m³/s). A bigger peak flushes more sediment, but it has to stay within what the river channel can carry.'],
+  days: ['Release duration', 'How many days the high release lasts. Longer releases move more sediment and help the delta, but they use more reservoir water.'],
+  reserve: ['Water reserved for supply', 'The share of available reservoir water you keep back for users. In this model it is a hard limit: the release can only use the water left after the reserve.'],
+  storage: ['Reservoir storage', 'How full the reservoir is, as a percentage of its volume.'],
+  capacity: ['Channel capacity', 'The largest flow the lower river channel can carry before it overflows its banks (bankfull capacity), in m³/s. In this model it rises a little when strong flows scour the riverbed.'],
+  bankfull: ['Bankfull capacity', 'The flow at which a river fills its channel up to the top of its banks. Above it, water spills onto the floodplain.'],
+  availability: ['Water availability', 'How wet the year is: dry, normal or wet. It sets how much water reaches the reservoir. These are teaching categories with sample values, not forecasts.'],
+  sediment: ['Incoming sediment', 'How much sediment the river carries into the reservoir this year. A teaching category with sample values.'],
+  demand: ['Demand', 'How much water downstream users need this year: low, medium or high. A teaching category.'],
+  flushing: ['Flushing (scouring)', 'Strong, sustained flow lifts sediment from the reservoir and the riverbed and carries it downstream towards the sea.'],
+  delta: ['Delta', 'The low-lying land where the Yellow River meets the sea. It needs both water and sediment to stay healthy.'],
+  total: ['Total score', 'A weighted average of the four meters, from 0 to 100. These are teaching scores, not real measurements or operating targets.'],
+  lijin: ['Lijin gauge', 'A river gauge on the lower Yellow River near the sea. Replay values are measured here, so they are not the dam release itself.'],
+  ssc: ['Sediment concentration', 'How much sediment is in the water, in kilograms per cubic metre (kg/m³).']
+};
+const T = (k, label) => `<span class="term" tabindex="0" data-term="${k}">${label}</span>`;
+(function () {   // one shared tooltip element, positioned next to whichever term is hovered, focused or tapped
+  const tip = document.createElement('div'); tip.id = 'tip'; tip.setAttribute('role', 'tooltip'); tip.hidden = true; document.body.appendChild(tip);
+  let cur = null, y0 = 0;
+  const hide = () => { if (cur) cur.removeAttribute('aria-describedby'); cur = null; tip.hidden = true; };
+  function show(el) {
+    const g = GLOSSARY[el.dataset.term]; if (!g) return;
+    if (cur && cur !== el) cur.removeAttribute('aria-describedby');
+    cur = el; y0 = scrollY; el.setAttribute('aria-describedby', 'tip'); tip.innerHTML = `<b>${g[0]}</b>${g[1]}`; tip.hidden = false;
+    const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+    tip.style.top = (r.bottom + 8 + h > innerHeight ? Math.max(8, r.top - h - 8) : r.bottom + 8) + 'px';
+  }
+  const term = e => e.target.closest && e.target.closest('.term');
+  document.addEventListener('mouseover', e => { const t = term(e); if (t) show(t); });
+  document.addEventListener('mouseout', e => { const t = term(e); if (t && t !== document.activeElement) hide(); });   // a tapped or focused term stays open until blur, Escape or another tap
+  document.addEventListener('focusin', e => { const t = term(e); if (t) show(t); });
+  document.addEventListener('focusout', e => { if (term(e)) hide(); });
+  document.addEventListener('click', e => { const t = term(e);   // tap on touch screens
+    if (t) { e.preventDefault(); if (cur !== t) show(t); } else hide(); });   // preventDefault: a term inside a <label> must not move focus to the slider
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+  addEventListener('scroll', () => { if (cur && Math.abs(scrollY - y0) > 30) hide(); }, { passive: true });   // tooltips are fixed, so a real scroll closes them
+  addEventListener('resize', () => { if (cur) hide(); });
+})();
+
 /* ===== CONFIG: slider ranges, units, defaults (edit here) ===== */
 const CONFIG = {
   runMs: 4000,   // animation length
@@ -14,10 +56,10 @@ const CONFIG = {
     { id: 'capacity', label: 'Channel capacity', unit: 'm³/s', min: 1000, max: 6000, step: 100, def: 2800, scope: 'sandbox' }
   ],
   meters: [
-    { id: 'flood', label: 'Flood safety', color: '#ffc857', desc: 'Drops when the peak release is larger than the channel can carry.' },
-    { id: 'reservoir', label: 'Reservoir health', color: '#ff8a4c', desc: 'Rewards flushing sediment out and keeping storage near mid-level.' },
+    { id: 'flood', label: 'Flood safety', color: '#a99bff', desc: `Drops when the peak release is larger than the ${T('capacity', 'channel capacity')}.` },
+    { id: 'reservoir', label: 'Reservoir health', color: '#ffb454', desc: `Rewards ${T('flushing', 'flushing')} sediment out and keeping storage near mid-level.` },
     { id: 'supply', label: 'Water supply', color: '#3de0ff', desc: 'Share of demand served, plus water kept for next year and the reserve.' },
-    { id: 'ecology', label: 'Ecology', color: '#6fbf8a', desc: 'Rewards longer high flows and sediment and water reaching the delta.' }
+    { id: 'ecology', label: 'Ecology', color: '#6fd6a0', desc: `Rewards longer high flows and sediment and water reaching the ${T('delta', 'delta')}.` }
   ]
 };
 
@@ -31,7 +73,7 @@ const LESSONS = [
 const $ = id => document.getElementById(id);
 let mode = 'challenge', busy = false, charts = {};
 // Run button: disabled + aria-busy while a regulation is animating (spinner is CSS)
-function setRunning(on) { const b = $('runBtn'); b.disabled = on; if (on) b.setAttribute('aria-busy', 'true'); else b.removeAttribute('aria-busy'); }
+function setRunning(on) { const b = $('runBtn'); b.disabled = on; if ($('histTable')) { if (on) $('histTable').dataset.busy = 'true'; else delete $('histTable').dataset.busy; } if (on) b.setAttribute('aria-busy', 'true'); else b.removeAttribute('aria-busy'); }
 let data = { rounds: [], events: [], timeline: [] };
 
 /* ---------- tabs and modes ---------- */
@@ -40,11 +82,20 @@ function showTab(name) {
   document.querySelectorAll('[role=tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
 }
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-tab]'); if (t) showTab(t.dataset.tab);
+  const t = e.target.closest('[data-tab]'); if (t) { showTab(t.dataset.tab); if (t.dataset.goto && $(t.dataset.goto)) $(t.dataset.goto).scrollIntoView({ behavior: REDUCE_MOTION ? 'auto' : 'smooth' }); }
   const m = e.target.closest('.toggle [data-mode]'); if (m) setMode(m.dataset.mode);
 });
 // Elements with data-modes="a b" are only visible in those modes
+function setBanner(m) {
+  const real = m === 'replay', b = $('banner');
+  b.dataset.kind = real ? 'real' : 'teach';
+  b.innerHTML = real
+    ? `<span class="badge">Real measurements</span><span>Replay shows measured values at the ${T('lijin', 'Lijin gauge')}, not the dam release. The reservoir level in the animation is illustrative.</span>`
+    : `<span class="badge">Teaching model</span><span>Scores, thresholds and starting values here are teaching assumptions, not real operating targets or a forecast.</span>`;
+  b.insertAdjacentHTML('beforeend', '<button type="button" class="banner-link" data-tab="about" data-goto="about-real">What is real?</button>');
+}
 function setMode(m) {
+  setBanner(m);
   mode = m; $('dashboard').dataset.mode = m;   // lets CSS give Replay a full-width layout
   document.querySelectorAll('.toggle button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
   document.querySelectorAll('[data-modes]').forEach(el => el.hidden = !el.dataset.modes.split(' ').includes(m));
@@ -58,10 +109,10 @@ function buildControls() {
     const w = document.createElement('div');
     w.className = 'ctl'; w.dataset.modes = c.scope === 'all' ? 'challenge sandbox' : 'sandbox';
     if (c.type === 'select') {
-      w.innerHTML = `<label for="c-${c.id}">${c.label}</label><select id="c-${c.id}">` +
+      w.innerHTML = `<label for="c-${c.id}">${T(c.id, c.label)}</label><select id="c-${c.id}">` +
         c.options.map(o => `<option ${o === c.def ? 'selected' : ''}>${o}</option>`).join('') + '</select>';
     } else {
-      w.innerHTML = `<label for="c-${c.id}">${c.label}: <output id="o-${c.id}"></output> ${c.unit}</label>` +
+      w.innerHTML = `<label for="c-${c.id}">${T(c.id, c.label)}: <output id="o-${c.id}"></output> ${c.unit}</label>` +
         `<input type="range" id="c-${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.def}">`;
       w.querySelector('input').addEventListener('input', e => { $('o-' + c.id).textContent = e.target.value; setPct(e.target); });
       w.querySelector('output').textContent = c.def; setPct(w.querySelector('input'));
@@ -74,7 +125,7 @@ function buildControls() {
   const foot = id => `<div class="meter-foot"><span class="status" id="ms-${id}" data-s="idle">Not run yet</span><span class="delta" id="md-${id}"></span></div>`;
   const wTxt = CONFIG.meters.map(m => `${m.label.toLowerCase()} ${Math.round(W[m.id] * 100)}%`).join(', ');
   $('meterList').innerHTML =
-    `<div class="meter total"><div class="meter-head"><span class="meter-name" id="mn-total">Total score</span>
+    `<div class="meter total"><div class="meter-head"><span class="meter-name" id="mn-total">${T('total', 'Total score')}</span>
        <span class="meter-val"><b id="mv-total">–</b><small>/100</small></span></div>${bar('total')}${foot('total')}
        <p class="meter-desc">Weighted average: ${wTxt}.</p></div>` +
     CONFIG.meters.map(m => `<div class="meter"><div class="meter-head"><span class="meter-name" id="mn-${m.id}">${m.label}</span>
@@ -104,9 +155,10 @@ function setVerdict(status, weak) {
 /* ---------- results card: idle state, summary, reasons and suggestions (all read from the model result) ---------- */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmtN = n => Math.round(n).toLocaleString('en-US');
-function lastRun() { const h = mode === 'challenge' ? Game.history : sandboxHist; return h.length >= 2 ? h[h.length - 2] : null; }
+const histNow = () => mode === 'challenge' ? Game.history : sandboxHist;
+function lastRun(at) { const h = histNow(), i = at == null ? h.length - 1 : at; return i >= 1 ? h[i - 1] : null; }   // the run before run #at (default: the newest)
 function showResultsIdle(msg) {
-  $('resIdle').hidden = false; $('resBody').hidden = true; setVerdict(null);
+  $('resIdle').hidden = false; $('resBody').hidden = true; setVerdict(null); $('replayNote').hidden = true;
   $('resIdleText').textContent = msg || 'Set the peak release, duration and reserve, then press Run regulation.';
   $('rsScore').dataset.v = 0; $('teaching').textContent = ''; $('nextBtn').hidden = true;
 }
@@ -141,9 +193,9 @@ function suggestions(res, inp, meters) {
   if (!out.length) out.push('Every meter is healthy. Try a different trade-off, for example a lower peak or a shorter release, and compare the runs in the history below.');
   return out;
 }
-function renderResults(res, inp, meters, violations) {
+function renderResults(res, inp, meters, violations, at) {
   $('resIdle').hidden = true; $('resBody').hidden = false;
-  const W = GAME_CONFIG.weights, total = Math.round(Object.keys(W).reduce((s, k) => s + W[k] * meters[k], 0)), last = lastRun();
+  const W = GAME_CONFIG.weights, total = Math.round(Object.keys(W).reduce((s, k) => s + W[k] * meters[k], 0)), last = lastRun(at);
   const sb = $('rsScore'), [s] = meterStatus(total, true); sb.dataset.s = s; tweenNumber(sb, total);
   const dl = $('rsDelta');
   if (last) { const d = total - Math.round(last.score); dl.dataset.d = d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
@@ -160,14 +212,79 @@ function renderResults(res, inp, meters, violations) {
 
 /* ---------- run history graph (Challenge: every round; Sandbox: every run) ---------- */
 let sandboxHist = [];
+const STATUS_TXT = { pass: 'Passed', mixed: 'Mixed', fail: 'Failed' };
+// dashed teaching-threshold lines (the same 40 / 60 used for the meter status colours)
+const thresholdPlugin = { id: 'thresholds', beforeDatasetsDraw(chart) {
+  const O = GAME_CONFIG.outcome, { ctx, chartArea: a, scales: { y } } = chart;
+  ctx.save(); ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(232,241,255,.3)'; ctx.fillStyle = 'rgba(147,168,196,.9)'; ctx.font = '10px sans-serif';
+  [O.failBelow, O.passAbove].forEach(v => { const yy = y.getPixelForValue(v); ctx.beginPath(); ctx.moveTo(a.left, yy); ctx.lineTo(a.right, yy); ctx.stroke(); ctx.fillText(String(v), a.left + 4, yy - 3); });
+  ctx.restore(); } };
 function drawRunChart() {
-  const h = mode === 'challenge' ? Game.history : sandboxHist;
-  const line = (label, key, color, dash) => ({ type: 'line', label, data: h.map(x => key === 'score' ? Math.round(x.score) : Math.round(x.meters[key])),
-    borderColor: color, backgroundColor: color, borderDash: dash || [], pointRadius: 4, tension: .25 });
-  makeChart('runChart', { yTitle: 'Score (0 to 100)', yMax: 100,
-    data: { labels: h.map((x, i) => (mode === 'challenge' ? 'Round ' : 'Run ') + (x.round || i + 1)),
-      datasets: [...CONFIG.meters.map(m => line(m.label, m.id, m.color)), line('Total score', 'score', '#ffffff', [6, 4])] } });
+  const h = histNow(), ch = mode === 'challenge';
+  $('histIdle').hidden = h.length > 0; $('histBody').hidden = !h.length;
+  $('histIdleText').textContent = ch ? 'No rounds played yet.' : 'No runs yet.';
+  if (!h.length) { $('histBest').hidden = true; if (charts.runChart) { charts.runChart.destroy(); delete charts.runChart; } return; }
+  const label = (x, i) => (ch ? 'Round ' : 'Run ') + (x.round || i + 1);
+  const best = h.reduce((b, x, i) => x.score > h[b].score ? i : b, 0);
+  const bestEl = $('histBest'); bestEl.hidden = h.length < 2;
+  bestEl.textContent = h.length < 2 ? '' : `Best so far: ${label(h[best], best)}, total ${Math.round(h[best].score)}`;
+  // comparison table: settings and scores side by side, best run highlighted
+  const cell = v => { const r = Math.round(v), [s] = meterStatus(r); return `<td data-s="${s}">${r}</td>`; };
+  $('histTable').innerHTML = `<thead><tr><th scope="col">${ch ? 'Round' : 'Run'}</th><th scope="col">${T('peak', 'Peak')} <small>m³/s</small></th>
+    <th scope="col">${T('days', 'Days')}</th><th scope="col">${T('reserve', 'Reserve')} <small>%</small></th>
+    <th scope="col">Total</th><th scope="col">Flood</th><th scope="col">Reservoir</th><th scope="col">Supply</th><th scope="col">Ecology</th>${ch ? '<th scope="col">Result</th>' : ''}<th scope="col"><span class="sr-only">Replay</span></th></tr></thead><tbody>` +
+    h.map((x, i) => { const [ts] = meterStatus(Math.round(x.score), true), d = i ? Math.round(x.score) - Math.round(h[i - 1].score) : null;
+      return `<tr${i === best && h.length > 1 ? ' class="best"' : ''}><th scope="row">${label(x, i)}${i === best && h.length > 1 ? ' <span class="best-tag">Best</span>' : ''}</th>
+        <td>${fmtN(x.inp.peak)}</td><td>${x.inp.days}</td><td>${x.inp.reserve}</td>
+        <td data-s="${ts}" class="tot"><b>${Math.round(x.score)}</b>${d == null ? '' : `<span class="delta" data-d="${d > 0 ? 'up' : d < 0 ? 'down' : 'flat'}">${d > 0 ? '+' : d < 0 ? '−' : '±'}${Math.abs(d)}</span>`}</td>
+        ${CONFIG.meters.map(m => cell(x.meters[m.id])).join('')}${ch ? `<td><span class="status" data-s="${{ pass: 'ok', mixed: 'warn', fail: 'bad' }[x.status]}">${STATUS_TXT[x.status]}</span></td>` : ''}
+        <td><button type="button" class="hist-replay" data-replay="${i}" aria-label="Replay ${label(x, i)}">Replay</button></td></tr>`; }).join('') + '</tbody>';
+  // chart: four meters plus the total; star marks the best total
+  const line = (lb, key, color) => ({ type: 'line', label: lb, data: h.map(x => Math.round(x.meters[key])), borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 3, tension: 0 });
+  makeChart('runChart', { yTitle: 'Score (0 to 100)', yMax: 100, plugins: [thresholdPlugin],
+    legend: { position: 'bottom', labels: { color: '#e8f1ff', usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 14 } },
+    tooltip: { callbacks: { title: it => label(h[it[0].dataIndex], it[0].dataIndex),
+      afterBody: it => { const x = h[it[0].dataIndex]; return [`Peak ${fmtN(x.inp.peak)} m³/s for ${x.inp.days} days, ${x.inp.reserve}% reserved`].concat(x.status ? ['Result: ' + STATUS_TXT[x.status]] : []); } } },
+    data: { labels: h.map(label), datasets: [...CONFIG.meters.map(m => line(m.label, m.id, m.color)),
+      { type: 'line', label: 'Total score', data: h.map(x => Math.round(x.score)), borderColor: '#ffffff', backgroundColor: '#ffffff', borderWidth: 3, tension: 0,
+        pointStyle: c => c.dataIndex === best && h.length > 1 ? 'star' : 'circle', pointRadius: c => c.dataIndex === best && h.length > 1 ? 10 : 4 }] } });
 }
+
+/* ---------- replay a past run: re-animate the stored result (the model is not re-run) ---------- */
+const animOf = (res, inp, s0, sedLevel) => ({ storage0: s0, storage1: res.storage, peak: inp.peak, sed: { low: .2, medium: .5, high: .9 }[sedLevel],
+  delta: Math.min(1, res.sedOut / 40), cap: inp.capacity, eff: effPeak(res, inp), over: res.overBankfull });
+function showHistoryRun(i) {
+  const x = histNow()[i];
+  setMeters(x.meters, i); renderResults(x.result, x.inp, x.meters, x.violations, i); showState(x.result.storage, x.result.capacity);
+  if (mode === 'challenge') { setVerdict(x.status, x.weak); $('teaching').textContent = 'Lesson: ' + x.lesson; }
+  $('nextBtn').hidden = true;
+}
+function restoreCurrent() {
+  const h = histNow(), ch = mode === 'challenge', played = ch ? h.length === Game.i + 1 : h.length > 0;
+  $('replayNote').hidden = true;
+  if (played) {
+    const x = h[h.length - 1]; showHistoryRun(h.length - 1); drawSchematic({ ...x.anim, storage: x.anim.storage1, gate: 0 });
+    if (ch) { $('nextBtn').textContent = Game.isLast() ? 'See debrief' : 'Next round'; $('nextBtn').hidden = false; }
+  } else {
+    showResultsIdle(); setMeters(null);
+    if (ch) { showState(Game.storage, Game.capacity); drawSchematic({ storage: Game.storage, gate: 0, sed: { low: .2, medium: .5, high: .9 }[Game.round().sediment_level], delta: 0, cap: Game.capacity }); }
+    else { const v = id => +$('c-' + id).value; showState(v('storage'), v('capacity'));
+      drawSchematic({ storage: v('storage'), gate: 0, sed: { low: .2, medium: .5, high: .9 }[$('c-sediment').value], delta: 0, cap: v('capacity') }); }
+  }
+}
+function replayRun(i) {
+  const x = histNow()[i]; if (!x || busy) return;
+  busy = true; const run = $('runBtn'), was = run.disabled; run.disabled = true; $('histTable').dataset.busy = 'true';
+  const name = (mode === 'challenge' ? 'Round ' : 'Run ') + (x.round || i + 1);
+  $('replayNote').hidden = false; $('replayNoteText').textContent = `Replaying ${name} from your history…`; $('replayBack').hidden = true;
+  animateRun(x.anim, () => {
+    showHistoryRun(i); busy = false; run.disabled = was; delete $('histTable').dataset.busy;
+    $('replayNoteText').textContent = `Showing ${name}, a past run. Scores and explanations are from that run.`; $('replayBack').hidden = false;
+  });
+}
+$('histTable').addEventListener('click', e => { const b = e.target.closest('[data-replay]'); if (b) replayRun(+b.dataset.replay); });
+$('replayBack').addEventListener('click', () => { if (!busy) restoreCurrent(); });
+
 const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function tweenNumber(el, to) {            // count the shown number to its new value (instant if reduced motion)
   cancelAnimationFrame(el._raf);
@@ -198,16 +315,16 @@ function setMeter(id, v, prev, isTotal) {            // v: rounded score or null
   else { const d = v - prev; dl.dataset.d = d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
     dl.textContent = d === 0 ? 'no change vs last run' : (d > 0 ? '+' : '−') + Math.abs(d) + ' vs last run'; }
 }
-function setMeters(m) {
-  const h = mode === 'challenge' ? Game.history : sandboxHist, last = h.length >= 2 ? h[h.length - 2] : null;   // the run before this one
+function setMeters(m, at) {
+  const last = lastRun(at);   // the run before this one
   CONFIG.meters.forEach(c => setMeter(c.id, m ? Math.round(m[c.id]) : null, m && last ? Math.round(last.meters[c.id]) : null));
   const W = GAME_CONFIG.weights;
   const tot = m ? Math.round(Object.keys(W).reduce((s, k) => s + W[k] * m[k], 0)) : null;
   setMeter('total', tot, m && last ? Math.round(last.score) : null, true);
 }
 function showState(storage, capacity) {
-  $('stateBox').innerHTML = `<dl class="state"><div><dt>Reservoir storage</dt><dd>${Math.round(storage)} <small>% of capacity</small></dd></div>
-    <div><dt>Channel capacity</dt><dd>${Math.round(capacity).toLocaleString('en-US')} <small>m³/s</small></dd></div></dl>`;
+  $('stateBox').innerHTML = `<dl class="state"><div><dt>${T('storage', 'Reservoir storage')}</dt><dd>${Math.round(storage)} <small>% of capacity</small></dd></div>
+    <div><dt>${T('capacity', 'Channel capacity')}</dt><dd>${Math.round(capacity).toLocaleString('en-US')} <small>m³/s</small></dd></div></dl>`;
 }
 
 /* ---------- schematic ---------- */
@@ -254,11 +371,11 @@ function explain(r, inp) {
 
 /* ---------- run button (Challenge and Sandbox) ---------- */
 $('runBtn').addEventListener('click', () => {
-  if (busy) return; busy = true; setRunning(true);
+  if (busy) return; busy = true; setRunning(true); $('replayNote').hidden = true;
   if (mode === 'challenge') runChallenge(); else runSandbox();
 });
 function finishRun(res, inp, meters, violations) {
-  $('runBtn').removeAttribute('aria-busy');   // Challenge keeps the button disabled until Next round; Sandbox re-enables it
+  $('runBtn').removeAttribute('aria-busy'); delete $('histTable').dataset.busy;   // history Replay buttons are usable again   // Challenge keeps the button disabled until Next round; Sandbox re-enables it
   setMeters(meters); drawRunChart(); showState(res.storage, res.capacity);
   renderResults(res, inp, meters, violations);
   busy = false;
@@ -266,9 +383,9 @@ function finishRun(res, inp, meters, violations) {
 function runSandbox() {
   const inp = getInputs(), res = runScenario(inp);
   const sc = Object.keys(GAME_CONFIG.weights).reduce((s, k) => s + GAME_CONFIG.weights[k] * res.meters[k], 0);
-  sandboxHist.push({ round: sandboxHist.length + 1, meters: res.meters, score: sc });
-  animateRun({ storage0: inp.storage, storage1: res.storage, peak: inp.peak, sed: { low: .2, medium: .5, high: .9 }[inp.sediment],
-    delta: Math.min(1, res.sedOut / 40), cap: inp.capacity, eff: effPeak(res, inp), over: res.overBankfull }, () => {
+  const anim = animOf(res, inp, inp.storage, inp.sediment);
+  sandboxHist.push({ round: sandboxHist.length + 1, meters: res.meters, score: sc, inp, result: res, violations: [], anim });
+  animateRun(anim, () => {
     finishRun(res, inp, res.meters);
     setControl('storage', Math.round(res.storage / 5) * 5); setControl('capacity', Math.round(res.capacity / 100) * 100); // carry on
     setRunning(false);
@@ -295,8 +412,8 @@ function renderRound() {
   $('roundInd').textContent = `Round ${r.id} of ${n}`;
   const pol = Game.activePolicies().map(p => `<p><span class="chip">Policy</span><b>${p.title}</b>: ${p.rule}</p>`).join('');
   $('roundCard').innerHTML = `<h3>${r.title}</h3><p>${r.special_event}</p>
-    <span class="chip">Water: ${r.water_availability}</span><span class="chip">Sediment: ${r.sediment_level}</span>
-    <span class="chip">Demand: ${r.demand_level}</span>${pol}` +
+    <span class="chip">${T('availability', 'Water')}: ${r.water_availability}</span><span class="chip">${T('sediment', 'Sediment')}: ${r.sediment_level}</span>
+    <span class="chip">${T('demand', 'Demand')}: ${r.demand_level}</span>${pol}` +
     (hints ? `<p class="small">Hint: keep the peak release below the channel capacity (${Math.round(Game.capacity)} m³/s now), and keep enough water reserved for supply.</p>` : '');
   showResultsIdle(); setRunning(false); busy = false;
   drawRunChart();
@@ -305,10 +422,9 @@ function renderRound() {
 }
 function runChallenge() {
   const r = Game.round(), s0 = Game.storage;
-  const out = Game.play(getInputs());
-  animateRun({ storage0: s0, storage1: out.result.storage, peak: out.inputs.peak,
-    sed: { low: .2, medium: .5, high: .9 }[r.sediment_level], delta: Math.min(1, out.result.sedOut / 40),
-    cap: out.inputs.capacity, eff: effPeak(out.result, out.inputs), over: out.result.overBankfull }, () => {
+  const out = Game.play(getInputs()), anim = animOf(out.result, out.inputs, s0, r.sediment_level);
+  Object.assign(Game.history[Game.history.length - 1], { anim, lesson: r.teaching_note });
+  animateRun(anim, () => {
     finishRun(out.result, out.inputs, out.meters, out.violations);
     setVerdict(out.status, out.weak);
     $('teaching').textContent = 'Lesson: ' + r.teaching_note;
@@ -367,12 +483,13 @@ function showDebrief() {
 function makeChart(id, cfg) {
   if (charts[id]) charts[id].destroy();
   if (typeof Chart === 'undefined') return;
-  const { yTitle, yMax, ...rest } = cfg;
+  const { yTitle, yMax, tooltip, legend, plugins, ...rest } = cfg;
   const tick = { color: '#93a8c4' }, grid = { color: 'rgba(94,196,255,.10)' };
-  rest.options = { maintainAspectRatio: false,
+  rest.options = { maintainAspectRatio: false, animation: REDUCE_MOTION ? false : undefined, interaction: tooltip ? { mode: 'index', intersect: false } : undefined,
     scales: { x: { ticks: tick, grid },
               y: { ticks: tick, grid, min: yMax != null ? 0 : undefined, max: yMax, title: { display: !!yTitle, text: yTitle, color: '#93a8c4' } } },
-    plugins: { legend: { labels: { color: '#e8f1ff' } } } };
+    plugins: { legend: legend || { labels: { color: '#e8f1ff' } }, tooltip: tooltip || {} } };
+  if (plugins) rest.plugins = plugins;
   charts[id] = new Chart($(id), { type: 'bar', ...rest });
 }
 
@@ -380,12 +497,12 @@ function makeChart(id, cfg) {
 function showEvent() {
   const idx = +$('eventSel').value, e = data.events[idx]; if (!e) return;
   const cards = [
-    ['Peak flow at Lijin gauge', e.peak_flow_lijin + ' m³/s'],
+    [T('lijin', 'Peak flow at Lijin gauge'), e.peak_flow_lijin + ' m³/s'],
     ['Event duration', e.duration_days + ' days' + (e.events > 1 ? ` (${e.events} events)` : '')],
-    ['Max sediment concentration', e.max_ssc + ' kg/m³'],
+    [T('ssc', 'Max sediment concentration'), e.max_ssc + ' kg/m³'],
     ['Water delivered to sea', e.water_to_sea_km3 + ' km³'],
     ['Sediment delivered to sea', e.sediment_to_sea_mt + ' Mt'],
-    ['Bankfull capacity', e.bankfull_capacity ? '≈ ' + e.bankfull_capacity + ' m³/s' : 'not in dataset']
+    [T('bankfull', 'Bankfull capacity'), e.bankfull_capacity ? '≈ ' + e.bankfull_capacity + ' m³/s' : 'not in dataset']
   ];
   $('eventCards').innerHTML = cards.map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('') +
     `<div style="grid-column:1/-1">${e.notes}<br><span class="small">Source: ${e.source}. Dates: ${e.start} to ${e.end}, ${e.year}.</span></div>`;

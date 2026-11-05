@@ -60,7 +60,8 @@ const Game = {
     const weak = Object.keys(meters).filter(k => meters[k] < O.failBelow).map(k => names[k]);
     const status = (weak.length || score < O.failScore) ? 'fail'
       : (violations.length || Object.values(meters).some(v => v < O.passAbove)) ? 'mixed' : 'pass';
-    this.history.push({ round: this.i + 1, peak: p.peak, meters, score, status, capacity: result.capacity });
+    this.history.push({ round: this.i + 1, peak: p.peak, meters, score, status, capacity: result.capacity,
+      inp: inputs, result, violations, weak });   // kept so a past round can be replayed and explained later
     return { result, meters, violations, score, inputs, status, weak };
   },
 
