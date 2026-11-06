@@ -87,7 +87,7 @@
     'No single goal can be maximised. Real regulation has moved from preventing dry-ups to coordinating flood safety, sediment, supply and ecology together.': '没有哪个目标可以单独最大化。现实中的调控已从防止断流，转向统筹防洪安全、泥沙、供水和生态。',
     // timeline tab
     'Each entry links to its sources. Where sources disagree on a date, the entry says so.': '每个条目都附有来源链接。若各来源对日期说法不一，条目中会注明。',
-    'Xiaolangdi Dam at a glance. Click the image to open it full size.': '小浪底水利枢纽一览。点击图片可查看大图。',
+    'Xiaolangdi Dam at a glance.': '小浪底水利枢纽一览。',
     'Infographic about the Xiaolangdi Dam on the Yellow River': '黄河小浪底水利枢纽信息图',
     'Open the Xiaolangdi Dam infographic full size in a new tab': '在新标签页中打开小浪底信息图大图',
     'Sources:': '来源：', 'Sources': '参考文献',
