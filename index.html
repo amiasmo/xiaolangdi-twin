@@ -10,12 +10,14 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=3">
   <link rel="stylesheet" href="css/scene.css?v=3">
+  <link rel="stylesheet" href="css/i18n.css?v=1">
 </head>
 <body class="intro-active">
 
 <!-- ===== INTRO (removed from the DOM by js/intro.js when finished) ===== -->
 <div id="intro">
   <section id="landing">
+    <button type="button" class="lang-btn lang-float" data-lang-toggle>中文</button>
     <img class="landing-logo" src="assets/thu_logo_white.png" alt="Tsinghua University">
     <h1>River Manager</h1>
     <p class="subtitle">A Digital Twin Lite of Xiaolangdi Water-Sediment Regulation</p>
@@ -41,6 +43,7 @@
   <!-- Start page: shown after video 2 (and the white flash). ENTER opens the site. -->
   <section id="startpage" hidden aria-label="Start page">
     <img class="start-bg" src="assets/start_wallpaper.png" alt="">
+    <button type="button" class="lang-btn lang-float" data-lang-toggle>中文</button>
     <div class="start-anchor"><button id="enterBtn" type="button" class="enter">Enter</button></div>
   </section>
 </div>
@@ -62,6 +65,7 @@
       <button role="tab" data-tab="timeline" aria-selected="false">Governance Timeline</button>
       <button role="tab" data-tab="about" aria-selected="false">About and Method</button>
     </nav>
+    <button type="button" class="lang-btn" data-lang-toggle>中文</button>
   </header>
 
   <main>
@@ -174,7 +178,8 @@
 	<section id="tab-about" class="tabpanel" hidden>
 	  <h2>About and Method</h2>
 
-	  <h3>Course project</h3>
+	  <div data-lang="en">
+<h3>Course project</h3>
 	  <p><strong>River Manager: A Digital Twin Lite of Xiaolangdi Water-Sediment Regulation</strong></p>
 	  <p>Course: <em>Development and Management of the Yellow River Basin</em>, Autumn 2026.<br>Group 2</p>
 	  <table class="team">
@@ -242,7 +247,7 @@
       </table>
       </div>
 
-      <h3 id="about-real">About the real data</h3>
+      <h3 id="about-real" data-anchor="about-real">About the real data</h3>
       <ul>
         <li>Replay values come from a published table of 15 regulation events (2002 to 2013) measured at the Lijin gauge, near the sea. They are <strong>not</strong> the dam release itself.</li>
         <li>Duration is the end date minus the start date. In 2007 and 2010 there were several events and the years combine them.</li>
@@ -258,6 +263,94 @@
         <li>Each round is one year; real regulation depends on conditions over many years.</li>
       </ul>
 
+      </div>
+<div data-lang="zh">
+<h3>课程项目</h3>
+	  <p><strong>河流管理者：小浪底水沙调控“轻量数字孪生”</strong></p>
+	  <p>课程：《黄河流域开发与管理》，2026年秋。<br>第2组</p>
+	  <table class="team">
+	    <thead><tr><th>姓名</th><th>学号</th></tr></thead>
+	    <tbody>
+		  <tr><td>唐子原</td><td>2026270055</td></tr>
+		  <tr><td>李孝源</td><td>2026270054</td></tr>
+		  <tr><td>荣赫</td><td>2026380114</td></tr>
+        </tbody>
+      </table>
+
+      <h3>目的与范围</h3>
+      <p>本网站让你扮演黄河汛期水沙调控期间小浪底水库的管理者。你需要决定放多少水、放多久，以及为供水保留多少水，并看到对四项指标的简化影响：防洪安全、水库健康、供水保障和生态。它是一个教学工具，一种“轻量数字孪生”：模仿真实系统的逻辑，但<strong>不是</strong>预测，不能用于决策。</p>
+
+      <h3>哪些是真实的，哪些是简化的</h3>
+      <ul>
+        <li><strong>真实数据：</strong>回放模式（data/events.json）和治理时间线（data/timeline.json）。每个条目都注明了来源。</li>
+        <li><strong>教学假设：</strong>模拟模型中的一切、八个挑战回合、政策规则（三角洲流量 800 m³/s、预留 25%、入库洪峰 6,000 m³/s）、评分权重和滑块范围。它们的设计目的是让取舍关系清晰可见，而不是与实测值吻合。</li>
+        <li><strong>占位模型：</strong>js/model.js 是一个刻意简化的替身，日后可以换成经过率定的模型，而无需改动界面。</li>
+      </ul>
+
+      <h3>模型如何运作（通俗说明）</h3>
+      <ol>
+        <li><strong>水量平衡。</strong>可用水量 = 已蓄水量 + 当年来水（枯水、平水或丰水）。计划放水量是峰值流量 × 历时，再换算成占水库库容的百分比。供水预留是硬性限制：放水只能使用扣除预留后剩余的水，因此过大的计划会被削减到允许的水平（实际达到的峰值也随之降低）。用水户随后由剩下的水供应。</li>
+        <li><strong>泥沙平衡。</strong>“冲刷效率”随峰值流量和历时（最长约 10 天）上升。冲刷越有效，离开水库的泥沙越多。水库会在各轮之间保留一份旧泥沙存量：一次冲刷最多只能冲走存量所含的泥沙，而留在水库中的泥沙会占用库容。</li>
+        <li><strong>河床与河道过流能力。</strong>强而长的放水会冲刷下游河床并提高河道过流能力，但随着过流能力提高（河床粗化），增益会逐渐变小。放水偏弱则使泥沙淤积，过流能力下降。过流能力会带入下一轮。</li>
+        <li><strong>指标。</strong>每项指标都是由以上结果计算出的 0 至 100 分（见下文）。</li>
+      </ol>
+
+      <h3>指标定义</h3>
+      <ul>
+        <li><strong>防洪安全</strong>在以下情况下下降：放水峰值超过当前河道过流能力；面对较大的入库洪峰却放水不足；或水库几乎蓄满。</li>
+        <li><strong>水库健康</strong>由三部分取平均：本轮有多少泥沙留在水库中，库容离中间水平有多近，以及留存的泥沙存量有多大。</li>
+        <li><strong>供水保障</strong>综合三部分：满足了多少需水，为来年留下了多少水，以及供水预留对需水的覆盖程度。如果计划放水因预留而被削减，该项会被扣分。</li>
+        <li><strong>生态</strong>奖励较长的放水（边际收益递减）、更多被带到下游的泥沙以及更多抵达三角洲的水量，并因极端的洪峰流量而被扣分。违反政策规则会扣分。</li>
+      </ul>
+
+      <h3>屏幕上显示的内容</h3>
+      <ul>
+        <li><strong>场景是示意图，不是水力学模型。</strong>随着放水峰值上升，三个闸门依次开启（5,000 m³/s 时全部开启），这只是视觉规则，并非真实的闸门运行。泥沙色调和到达三角洲的泥沙量遵循模型的泥沙数值。放水仪表将实际放出的峰值与河道过流能力作比较，其“超出”或“未超出”的结论就是模型自身的洪水标志。</li>
+        <li><strong>状态颜色</strong>采用游戏的阈值：指标低于 40 为“危急”，40 至 59 为“需关注”，60 及以上为“良好”。总分低于 50 为“危急”。这些是教学阈值，不是真实的运行限值。</li>
+        <li><strong>解释和建议</strong>由固定规则根据模型输出生成，例如峰值与河道过流能力的对比、留在水库中的泥沙以及放水是否被削减。它们只是关于取舍的提示，绝不会替你改动控制项。</li>
+        <li><strong>运行历史中的回放</strong>重现的是此前某次运行已保存的结果，不会重新运行模型。</li>
+      </ul>
+
+      <h3>参数</h3>
+      <div class="tablewrap">
+      <table class="params">
+        <thead><tr><th>参数</th><th>取值</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>放水量占水库库容的百分比</td><td>峰值 × 天数 × 0.000683</td><td>推导而来：每天 86,400 秒 ÷ 126.5 亿 m³ 总库容 × 100（Nunn, 1999）。简化：采用总库容，而非有效库容（51 亿 m³）。</td></tr>
+          <tr><td>来水：枯水 / 平水 / 丰水</td><td>占水库的 20 / 40 / 65 %（超过 100 % 的部分溢出）</td><td>教学假设</td></tr>
+          <tr><td>入库泥沙：低 / 中 / 高</td><td>10 / 20 / 35 单位</td><td>教学假设</td></tr>
+          <tr><td>需水：低 / 中 / 高</td><td>20 / 30 / 45 单位</td><td>教学假设</td></tr>
+          <tr><td>冲刷效率</td><td>峰值 ÷ 4,000 × min(1, 天数 ÷ 10)</td><td>参照实际做法：峰值流量约 4,000 m³/s，高流量阶段约 10 天（Wang 等，2017）。公式本身是假设。</td></tr>
+          <tr><td>排出的泥沙</td><td>入库泥沙 × (0.2 + 0.7 × 效率)，再加对旧淤积的冲刷 = min(存量, 12 × 效率)</td><td>教学假设</td></tr>
+          <tr><td>水库初始泥沙存量</td><td>30 单位</td><td>教学假设</td></tr>
+          <tr><td>每轮河道过流能力变化</td><td>+220 × 效率（最大为 1）× 余量 − 4 × 淤积泥沙；余量 = (5,000 − 过流能力) ÷ 3,200，介于 0.05 和 1 之间</td><td>教学假设，按最佳情况每轮增加约 100 至 200 m³/s 设定，与报道的 2002 至 2020 年间由约 1,800 升至 4,500 m³/s 属同一量级，并随过流能力提高而放缓</td></tr>
+          <tr><td>初始河道过流能力</td><td>2,800 m³/s</td><td>假设值，位于 2002 至 2020 年报道的 1,800 至 4,500 m³/s 范围之内</td></tr>
+          <tr><td>初始水库蓄水量</td><td>55 %</td><td>教学假设</td></tr>
+          <tr><td>到达三角洲的流量</td><td>0.3 × 实际放出的峰值 × (0.5 + 0.5 × min(1, 天数 ÷ 12)) + 基流 60 / 120 / 200 m³/s（枯水 / 平水 / 丰水）</td><td>教学假设</td></tr>
+          <tr><td>政策规则</td><td>三角洲流量 800 m³/s；预留 25 %；入库洪峰 6,000 m³/s</td><td>教学假设，并非官方政策数值</td></tr>
+          <tr><td>评分权重</td><td>防洪 0.30，水库 0.25，供水 0.25，生态 0.20；政策扣分 20 分（简单难度为 10 分）</td><td>设计选择，可在 GAME_CONFIG（js/game.js）中调整</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3 id="about-real-zh" data-anchor="about-real">关于真实数据</h3>
+      <ul>
+        <li>回放数值来自一份已发表的表格，包含 2002 至 2013 年的 15 次调控事件，在近海的利津水文站测得。它们<strong>不是</strong>大坝的放水量本身。</li>
+        <li>历时为结束日期减去开始日期。2007 年和 2010 年各有多次事件，当年数据为这些事件的合并。</li>
+        <li>所用资料中没有各年的平滩流量，也没有各次事件中水库的入库和出库泥沙量，因此未予显示。</li>
+      </ul>
+
+      <h3>局限性</h3>
+      <ul>
+        <li>河道过流能力只有一个数值；真实的下游河道各河段过流能力不同，限制安全流量的是其中最小的一段。</li>
+        <li>没有支流、降雨预报、上游水库运行，也没有真实事件的两阶段结构（先是清水阶段，然后是排沙阶段）。</li>
+        <li>真实的冲刷作用会随河床粗化而减弱（Wang 等，2017），模型未包含这一点。</li>
+        <li>生态只是一个单一分数，不能代表三角洲地貌、营养盐或渔业。</li>
+        <li>每一轮代表一年；真实的调控取决于多年的条件。</li>
+      </ul>
+
+      </div>
+
       <h3>Sources</h3>
       <ol class="refs">
         <li>Wang, H., Wu, X., Bi, N., Li, S., Yuan, P., Wang, A., Syvitski, J. P. M., Saito, Y., Yang, Z., Liu, S., &amp; Nittrouer, J. (2017). Impacts of the dam-orientated water-sediment regulation scheme on the lower reaches and delta of the Yellow River (Huanghe): A review. <em>Global and Planetary Change, 157</em>, 93–113. <a href="https://doi.org/10.1016/j.gloplacha.2017.08.005" target="_blank" rel="noopener">https://doi.org/10.1016/j.gloplacha.2017.08.005</a></li>
@@ -272,11 +365,20 @@
         <li>More sources are linked inside each Governance Timeline entry.</li>
       </ol>
 
-      <h3>Use of AI</h3>
+      <div data-lang="en">
+<h3>Use of AI</h3>
       <p>The two introduction videos were generated with AI (Seedance 2.5 ai) and are illustrative, not documentary footage. The code of this site was written with web coding assistance from Claude Sonnet 5.5 (Anthropic) and edited by the group. The data entries were compiled with AI-assisted web search and are linked to their sources.</p>
 
       <h3>Code map</h3>
-      <p>intro.js (video intro), app.js (interface), game.js (Challenge rules), model.js (simulation),  data/*.json (content).</p>
+      <p>intro.js (video intro), app.js (interface), game.js (Challenge rules), model.js (simulation), i18n.js (language switch),  data/*.json (content).</p>
+    </div>
+<div data-lang="zh">
+<h3>人工智能的使用</h3>
+      <p>两段介绍视频由 AI（Seedance 2.5 ai）生成，仅作示意，并非纪实影像。本网站的代码在 Claude Sonnet 5.5（Anthropic）的网页编程辅助下编写，并由小组修改。数据条目借助 AI 辅助的网络搜索整理而成，并附有来源链接。</p>
+
+      <h3>代码结构</h3>
+      <p>intro.js（视频片头）、app.js（界面）、game.js（挑战规则）、model.js（模拟）、i18n.js（语言切换）、data/*.json（内容）。</p>
+    </div>
     </section>
   </main>
 
@@ -291,6 +393,7 @@
 <script src="js/model.js?v=3"></script>
 <script src="js/game.js?v=3"></script>
 <script src="js/schematic.js?v=3"></script>
+<script src="js/i18n.js?v=1"></script>
 <script src="js/app.js?v=3"></script>
 </body>
 </html>
