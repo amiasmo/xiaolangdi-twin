@@ -285,7 +285,7 @@ const Scene = (function () {
     body.setAttribute('d', top + 'L360 330L0 330Z'); surf.setAttribute('d', top); sheen.setAttribute('d', top);
     mark.setAttribute('transform', `translate(0 ${(Y_FULL + ty).toFixed(2)})`);
     const lv = tgt.src === 'lijin' ? 'ILLUSTRATIVE' : Math.round(cur.storage) + '% STORAGE';   // Replay has no real reservoir level
-    if (markT.textContent !== lv) markT.textContent = lv;
+    if (markT._lv !== lv) { markT._lv = lv; markT.textContent = lv; }   // compare with the English value (the text itself may be translated)
     setH('lvl', lv);
   }
 

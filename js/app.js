@@ -479,7 +479,13 @@ function showDebrief() {
 function makeChart(id, cfg) {
   if (charts[id]) charts[id].destroy();
   if (typeof Chart === 'undefined') return;
-  const { yTitle, yMax, tooltip, legend, plugins, ...rest } = cfg;
+  let { yTitle, yMax, tooltip, legend, plugins, ...rest } = cfg;
+  // language: translate chart text (canvas text is not part of the page, so i18n.js cannot reach it)
+  const L = window.tr || (s => s);
+  yTitle = yTitle && L(yTitle);
+  if (rest.data) { rest.data.labels = rest.data.labels.map(x => L(x)); rest.data.datasets.forEach(d => { d.label = L(d.label); }); }
+  if (tooltip && tooltip.callbacks) { const cb = tooltip.callbacks;
+    tooltip = { ...tooltip, callbacks: { title: it => L(cb.title(it)), afterBody: it => cb.afterBody(it).map(x => L(x)) } }; }
   const tick = { color: '#93a8c4' }, grid = { color: 'rgba(94,196,255,.10)' };
   rest.options = { maintainAspectRatio: false, animation: REDUCE_MOTION ? false : undefined, interaction: tooltip ? { mode: 'index', intersect: false } : undefined,
     scales: { x: { ticks: tick, grid },
@@ -533,3 +539,10 @@ async function init() {
   setMode('challenge');
 }
 init();
+
+/* ---------- language switch: redraw what is drawn on canvases, and the parts built from stored values ---------- */
+document.addEventListener('langchange', () => {
+  if (!data.rounds.length) return;                         // data not loaded yet
+  if (!$('debrief').hidden) showDebrief();                 // debrief screen (has its own chart)
+  else { drawRunChart(); if (mode === 'replay') showEvent(); }
+});
