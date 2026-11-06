@@ -18,6 +18,7 @@
     'River Manager': '河流管理者',
     'A Digital Twin Lite of Xiaolangdi Water-Sediment Regulation': '小浪底水沙调控“轻量数字孪生”',
     'Best with sound on': '建议开启声音观看',
+    'This site works better on a PC': '本网站在电脑上浏览效果更佳',
     'Development and Management of the Yellow River Basin · Autumn 2026 · Group 2': '黄河流域开发与管理 · 2026年秋 · 第2组',
     'Tsinghua University': '清华大学', 'Play intro video': '播放介绍视频', 'Mute': '静音', 'SKIP': '跳过', 'Enter': '进入', 'Start page': '开始页面',
     // header, tabs, footer

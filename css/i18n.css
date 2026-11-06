@@ -16,3 +16,5 @@ html[lang^="zh"] .subtitle{max-width:30em}
 .lang-btn:hover{background:rgba(61,224,255,.92);color:#02101c;border-color:var(--cyan)}
 header .lang-btn{margin-left:.5rem}
 .lang-float{position:absolute;z-index:3;top:clamp(16px,4vh,36px);right:clamp(16px,3vw,40px);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+/* the landing page has a rule that makes every direct child position:relative; keep the language button in the top-right corner */
+#landing>.lang-btn.lang-float,#startpage>.lang-btn.lang-float{position:absolute;top:clamp(14px,3vh,32px);right:clamp(14px,3vw,40px);z-index:5}
