@@ -1,0 +1,18 @@
+/* ----- language switch (js/i18n.js) ----- */
+html[lang^="zh"] [data-lang="en"]{display:none!important}
+html:not([lang^="zh"]) [data-lang="zh"]{display:none!important}
+/* Chinese fonts: the Latin fonts have no Chinese glyphs, so name good system fonts */
+html[lang^="zh"]{
+  --font:"Space Grotesk","Microsoft YaHei","PingFang SC","Noto Sans SC","Hiragino Sans GB",system-ui,sans-serif;
+  --mono:"JetBrains Mono","Microsoft YaHei","PingFang SC","Noto Sans SC",ui-monospace,Consolas,monospace}
+html[lang^="zh"] body{line-height:1.7}
+/* wide letter-spacing looks airy with Chinese characters */
+html[lang^="zh"] #landing h1,html[lang^="zh"] .brand-text h1{letter-spacing:.14em}
+html[lang^="zh"] .brand .small,html[lang^="zh"] .hud-l,html[lang^="zh"] .sc-lab,html[lang^="zh"] .sc-mk{letter-spacing:.04em}
+html[lang^="zh"] .enter{letter-spacing:.4em}
+html[lang^="zh"] .subtitle{max-width:30em}
+.lang-btn{min-height:40px;min-width:64px;padding:.3em 1em;border-radius:999px;font-family:var(--mono);font-size:.8rem;font-weight:600;
+  letter-spacing:.06em;color:#fff;background:rgba(4,12,24,.55);border:1px solid rgba(61,224,255,.55);cursor:pointer}
+.lang-btn:hover{background:rgba(61,224,255,.92);color:#02101c;border-color:var(--cyan)}
+header .lang-btn{margin-left:.5rem}
+.lang-float{position:absolute;z-index:3;top:clamp(16px,4vh,36px);right:clamp(16px,3vw,40px);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
