@@ -4,8 +4,8 @@
    "sources":[{"label":"Springer chapter on Sanmenxia operation","url":"https://rd.springer.com/chapter/10.1007/978-94-009-2450-5_38"},{"label":"Atlantis Press (IFEESM 2015)","url":"https://www.atlantis-press.com/article/25841337.pdf"}],"lesson":null},
 
   {"id":"sanmenxia-rebuild","date":"1960–1973","sort":1960,"title":"Siltation forces Sanmenxia to be rebuilt and re-operated",
-   "text":"Serious sedimentation appeared as soon as the reservoir began storing water. Operation changed from storing water (Sep 1960 to Mar 1962) to detaining floods (1962 to 1973), the outlets were enlarged in rebuilding works, and since November 1973 the reservoir stores clear water and releases muddy flood flow. This is the origin of the idea that a reservoir on a sediment-laden river must be operated to pass sediment.",
-   "sources":[{"label":"Yellow River Institute of Hydraulic Research slides (INBO)","url":"https://inbo-news.org/sites/default/files/IMG/pdf/TS-5_4_English--_-_.pdf"},{"label":"Atlantis Press (IFEESM 2015)","url":"https://www.atlantis-press.com/article/25841337.pdf"}],"lesson":"sediment"},
+   "text":"Serious sedimentation appeared as soon as the reservoir began storing water. Operation changed from storing water (Sep 1960 to Mar 1962) to detaining floods (1962 to 1973), the outlets were enlarged in rebuilding works, and since late 1973 the reservoir stores clear water and releases muddy flood flow (“store the clear, discharge the muddy”). This is the origin of the idea that a reservoir on a sediment-laden river must be operated to pass sediment.",
+   "sources":[{"label":"Springer chapter on Sanmenxia operation","url":"https://rd.springer.com/chapter/10.1007/978-94-009-2450-5_38"},{"label":"Atlantis Press (IFEESM 2015)","url":"https://www.atlantis-press.com/article/25841337.pdf"}],"lesson":"sediment"},
 
   {"id":"plan-1987","date":"1987","sort":1987,"title":"First basin-wide water allocation scheme",
    "text":"The State Council approved the Yellow River water allocation scheme (the \"87 Plan\"), the first basin-level allocation scheme in China. It shared about 37 billion m³ a year among the provinces and regions along the river, out of roughly 58 billion m³ of total runoff, leaving the rest in the river for sediment transport and other needs. Enforcement was weak, and in drought years actual use exceeded the plan.",
@@ -13,7 +13,7 @@
 
   {"id":"xld-build","date":"1994–2001","sort":1994,"title":"Xiaolangdi is built",
    "text":"Construction of the Xiaolangdi multipurpose project began in 1994 with World Bank financing. It is a 154 m rockfill dam with 12.65 billion m³ of total storage, of which 5.1 billion m³ is live storage. Its aims are flood protection for the lower river, control of siltation in the lower channel, water supply and power. The reservoir began storing water in 1999 and the whole project was finished around 2001; sources give different completion months.",
-   "sources":[{"label":"World Bank project P003562","url":"https://projects.worldbank.org/en/projects-operations/project-detail/P003562"},{"label":"Nunn (1999), The Xiaolangdi Multipurpose Dam Project","url":"https://www.onemine.org/documents/the-xiaolangdi-multipurpose-dam-project"},{"label":"China Daily (2009)","url":"https://covid-19.chinadaily.com.cn/china/2009-04/07/content_7653855.htm"}],"lesson":null},
+   "sources":[{"label":"World Bank project P003562","url":"https://projects.worldbank.org/en/projects-operations/project-detail/P003562"},{"label":"Nunn (1999), The Xiaolangdi Multipurpose Dam Project","url":"https://www.onemine.org/documents/the-xiaolangdi-multipurpose-dam-project"},{"label":"China Daily (2009)","url":"https://www.chinadaily.com.cn/china/2009-04/07/content_7653855.htm"}],"lesson":null},
 
   {"id":"dryup-1997","date":"1997","sort":1997,"title":"Record dry-up of the lower river",
    "text":"The Yellow River failed to reach the sea on 226 days at Lijin in 1997, and the dry reach extended about 704 km upstream. The year became the symbol of over-use and pushed the government towards stronger central control of water.",
@@ -29,15 +29,15 @@
 
   {"id":"experiments-2002-2004","date":"2002–2004","sort":2003,"title":"Three experiments, then yearly operation",
    "text":"Three regulation experiments were run in 2002, 2003 and 2004. The 2004 one coordinated the Wanjiazhai, Sanmenxia and Xiaolangdi reservoirs. Regulation then continued in most following years; 15 regulation events were identified between 2002 and 2013. Each event has a first phase of mostly clear, high flow to scour the channel and a second phase that exports reservoir sediment.",
-   "sources":[{"label":"Wang et al. (2017)","url":"https://doi.org/10.1016/j.gloplacha.2017.08.005"},{"label":"MDPI Water (2026), 2004 experiment","url":"https://www.mdpi.com/2073-4441/18/21/2742"}],"lesson":null},
+   "sources":[{"label":"Wang et al. (2017)","url":"https://doi.org/10.1016/j.gloplacha.2017.08.005"}],"lesson":null},
 
   {"id":"ordinance-2006","date":"1 Aug 2006","sort":2006,"title":"Water regulation ordinance takes effect",
    "text":"State Council Decree No. 472, the Regulations of Yellow River Water Regulating, took effect on 1 August 2006. It was China's first administrative regulation on water regulation of a whole river basin and put basin water under unified state control, with rules for allocation, regulation, emergencies and legal responsibility.",
    "sources":[{"label":"China.org.cn (2006)","url":"http://www.china.org.cn/archive/2006-08/02/content_1176629.htm"},{"label":"Speech by YRCC commissioner Li Guoying","url":"http://www.china.org.cn/e-news/news060801-2.htm"}],"lesson":null},
 
   {"id":"capacity-2002-2020","date":"2002–2020","sort":2010,"title":"Lower-river flood capacity recovers",
-   "text":"Repeated scouring raised the minimum bankfull capacity of the lower river from about 1,800 m³/s in 2002 to about 4,300 m³/s by 2018 and about 4,500 m³/s after the 2020 flood season. More capacity allowed larger regulation flows, but the riverbed is becoming coarser, so scouring gets harder over time.",
-   "sources":[{"label":"Strategic Study of CAE (2022)","url":"https://www.engineering.org.cn/sscae/EN/10.15302/J-SSCAE-2022.01.013"},{"label":"IAHR: Xiaolangdi sedimentation and lower channel","url":"https://www.iahr.org/library/infor?pid=31683"},{"label":"Wang et al. (2017)","url":"https://doi.org/10.1016/j.gloplacha.2017.08.005"}],"lesson":"flood"},
+   "text":"Repeated scouring raised the minimum bankfull capacity of the lower river from about 1,800 m³/s in 2002 to about 4,300 m³/s by 2018; in the June 2020 flood drill the main channel passed a flow of 5,000 m³/s. More capacity allowed larger regulation flows, but the riverbed is becoming coarser, so scouring gets harder over time.",
+   "sources":[{"label":"Strategic Study of CAE (2022)","url":"https://www.engineering.org.cn/sscae/EN/10.15302/J-SSCAE-2022.01.013"},{"label":"IAHR: Xiaolangdi sedimentation and lower channel","url":"https://www.iahr.org/library/infor?pid=31683"},{"label":"YRCC / chinawater.com.cn (2020 flood drill)","url":"https://www.chinawater.com.cn/newscenter/ly/huangh/202007/t20200701_752431.html"},{"label":"Wang et al. (2017)","url":"https://doi.org/10.1016/j.gloplacha.2017.08.005"}],"lesson":"flood"},
 
   {"id":"law-2022","date":"30 Oct 2022 / 1 Apr 2023","sort":2022,"title":"Yellow River Protection Law",
    "text":"The Standing Committee of the National People's Congress passed the Yellow River Protection Law on 30 October 2022 and it took effect on 1 April 2023. It has a chapter on water-sediment regulation and flood safety, calls for unified allocation of the river's water, and sets limits on water use.",

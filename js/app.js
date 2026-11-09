@@ -65,7 +65,7 @@ const CONFIG = {
 
 /* Key lessons. "tag" links a lesson to the timeline entry that has the same "lesson" tag in data/timeline.json */
 const LESSONS = [
-  { tag: 'flood', text: 'Releasing more than the channel can carry endangers people downstream, but the safe limit is not fixed: scouring raised the real lower river\'s minimum bankfull capacity from about 1,800 m³/s (2002) to about 4,500 m³/s (2020).' },
+  { tag: 'flood', text: 'Releasing more than the channel can carry endangers people downstream, but the safe limit is not fixed: scouring raised the real lower river\'s minimum bankfull capacity from about 1,800 m³/s (2002) to about 4,300 m³/s (2018).' },
   { tag: 'sediment', text: 'Flushing sediment needs strong, sustained flow, and that water is also needed for supply. Sanmenxia\'s early siltation is why sediment management became central to the river.' },
   { tag: 'balance', text: 'No single goal can be maximised. Real regulation has moved from preventing dry-ups to coordinating flood safety, sediment, supply and ecology together.' }
 ];
@@ -534,7 +534,7 @@ async function init() {
   // Timeline: each entry lists its sources as links
   $('timelineList').innerHTML = data.timeline.map(t => {
     const src = (t.sources || []).map(s => `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>`).join(' · ');
-    return `<li id="tl-${t.id}"><b>${t.date}: ${t.title}</b><br>${t.text}<br><span class="small">Sources: ${src}</span></li>`;
+    return `<li id="tl-${t.id}"><b><span>${t.date}</span>: <span>${t.title}</span></b><br>${t.text}<br><span class="small">Sources: ${src}</span></li>`;
   }).join('');
   setMode('challenge');
 }
