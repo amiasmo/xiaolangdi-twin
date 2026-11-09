@@ -295,7 +295,7 @@ function tweenNumber(el, to) {            // count the shown number to its new v
     el.textContent = Math.round(from + (to - from) * e); if (k < 1) el._raf = requestAnimationFrame(step); };
   el._raf = requestAnimationFrame(step);
 }
-// status uses the game's own thresholds (GAME_CONFIG.outcome), nothing new is invented here
+// status uses the game's own thresholds (GAME_CONFIG.outcome), no new thresholds here
 function meterStatus(v, isTotal) {
   const O = GAME_CONFIG.outcome, lo = isTotal ? O.failScore : O.failBelow;
   return v < lo ? ['bad', 'Critical'] : v < O.passAbove ? ['warn', 'Needs attention'] : ['ok', 'Healthy'];

@@ -36,6 +36,8 @@
   --sh-2:0 10px 30px rgba(0,0,0,.38);
   --ring:0 0 0 3px rgba(61,224,255,.35);
   --ease:.18s ease;
+  /* overall interface size: 1 = 100%, .85 = zoomed out 15%. Change this one number to resize the whole site. */
+  --ui-zoom:.85;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -43,6 +45,8 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.55;
   min-height:100vh;-webkit-font-smoothing:antialiased}
 body.intro-active{overflow:hidden}
+#site{zoom:var(--ui-zoom)}                      /* zoom out the main site (not the intro) */
+@media (max-width:700px){:root{--ui-zoom:1}}     /* phones: keep full size */
 
 /* ----- page background: faded panorama + faint tech grid (behind everything) ----- */
 body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
@@ -286,7 +290,7 @@ footer{text-align:center;padding:2rem 1rem;margin-top:1rem;border-top:1px solid 
 #debrief button[data-tab]{min-height:36px;font-size:.8rem;margin-left:.4rem}
 #debrief h2{margin-top:0}
 
-/* ======================= Step 7: site polish ======================= */
+/* ======================= site polish ======================= */
 :root{color-scheme:dark}
 .brand .small{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}
 

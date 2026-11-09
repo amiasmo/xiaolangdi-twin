@@ -4,7 +4,7 @@ const GAME_CONFIG = {
   weights: { flood: 0.30, reservoir: 0.25, supply: 0.25, ecology: 0.20 },  // scoring weights (tune here)
   outcome: { failBelow: 40, passAbove: 60, failScore: 50 },                // a meter under failBelow (or total score under failScore) = FAILED round
   policyPenalty: 20,                                                       // meter points lost per broken rule
-  startStorage: 55, startCapacity: 2800, startSedStock: 30,                // SAMPLE starting state
+  startStorage: 55, startCapacity: 2800, startSedStock: 30,                // sample starting state
   difficulty: { easy: { penaltyScale: 0.5, hints: true }, normal: { penaltyScale: 1, hints: false } }
 };
 

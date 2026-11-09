@@ -1,6 +1,5 @@
 /* schematic.js - scene renderer for the dam / reservoir / river diagram.
    Visual layer only: app.js calls Scene.update(state); no physics here.
-   STEP 1: composition + API. (Waves, flow ribbons, particles, HUD follow in later steps.)
    state: { storage 0..100, gate 0..1, sed 0..1, delta 0..1 } */
 const Scene = (function () {
   const host = document.getElementById('schematic');
@@ -234,7 +233,7 @@ const Scene = (function () {
     splash.setAttribute('rx', 22 + p * 30);
   }
 
-  /* ----- HUD: every value is read from simulation state (nothing typed in) ----- */
+  /* ----- HUD: every value is read from simulation state (none are typed in) ----- */
   const hudEl = {}; host.querySelectorAll('[data-h]').forEach(e => (hudEl[e.dataset.h] = hudEl[e.dataset.h] || []).push(e));
   const hudVal = {};
   function setH(id, v, label) {
@@ -248,7 +247,7 @@ const Scene = (function () {
     setH('peak', v == null ? '–' : fmt(v) + ' m³/s', tgt.src === 'lijin' ? 'PEAK FLOW (LIJIN)' : 'PEAK RELEASE');
     return v;
   }
-  /* ----- release vs channel capacity: both values come from the app (slider/model); no numbers typed here.
+  /* ----- release vs channel capacity: both values come from the app (slider/model); no numbers are typed here.
      rel = peak actually delivered once a run's result is known, else the planned peak; "over" is the model's own flag after a run ----- */
   const GX = 560, GW = 220;
   function drawGauge() {

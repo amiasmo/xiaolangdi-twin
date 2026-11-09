@@ -1,6 +1,6 @@
 /* model.js - SIMULATION MODEL (PLACEHOLDER, v2).
-   TODO: replace the body of runScenario() with the real model. Keep the signature stable.
-   All constants below are SAMPLE values, not real Yellow River data. No DOM code here.
+   The body of runScenario() can be replaced by a calibrated model; keep the signature the same.
+   All constants below are sample values, not real Yellow River data. No DOM code here.
 
    inputs: { peak (m3/s), days, reserve (%), availability ('dry'|'normal'|'wet'),
              sediment ('low'|'medium'|'high'), demand ('low'|'medium'|'high'),
@@ -19,7 +19,7 @@ const MODEL_CONST = {
 
 function runScenario(i) {
   const scale = i.penaltyScale ?? 1;
-  // SAMPLE lookup tables (units: % of reservoir volume, or arbitrary sediment units)
+  // sample lookup tables (units: % of reservoir volume, or arbitrary sediment units)
   const inflow = { dry: 20, normal: 40, wet: 65 }[i.availability];
   const sedIn = { low: 10, medium: 20, high: 35 }[i.sediment];
   const demandUnits = { low: 20, medium: 30, high: 45 }[i.demand];

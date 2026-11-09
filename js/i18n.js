@@ -1,11 +1,9 @@
-/* i18n.js - English / 中文 switch.
-   How it works: the English text stays in the code. In Chinese mode this file translates every piece of text that
-   appears on the page (also text that the other scripts create later) using
-     1) DICT   exact English text -> Chinese
-     2) RULES  sentences with numbers in them (regular expressions)
-     3) data/i18n_zh.json  (optional) Chinese for the texts inside data/rounds.json, events.json, timeline.json
-   Text that has no translation simply stays English, so nothing breaks. Switching back to English restores the originals.
-   To add or fix a translation: edit DICT / RULES below (or the JSON file). */
+/* i18n.js - English / Chinese switch.
+   In Chinese mode the text on the page is translated by lookup:
+     DICT   exact English text -> Chinese
+     RULES  sentences that contain numbers
+     data/i18n_zh.json  Chinese for the texts in the data files (optional)
+   Anything without a translation stays in English. To add one, edit DICT or the JSON file. */
 (function () {
   'use strict';
   const KEY = 'rm-lang';
