@@ -182,9 +182,9 @@
     rx('Final score', () => '最终得分'),
     rx('Lines show real peak flows at the Lijin gauge for regulation events 2002 to 2013 \\(mean (\\d+), range (\\d+) to (\\d+) m³\\/s; Wang et al\\., 2017\\)\\.\\s+Your bars are release settings in this simplified game, so compare them as an order of magnitude only\\.',
       m => `折线表示 2002 至 2013 年调控事件中利津站的实测洪峰流量（平均 ${m[1]}，范围 ${m[2]} 至 ${m[3]} m³/s；Wang 等，2017）。柱状图是这个简化游戏中的放水设置，只能作数量级上的比较。`),
-    rx('Related: (.+)', m => { const i = m[1].indexOf(', '); return '相关：' + (i < 0 ? m[1] : m[1].slice(0, i) + '，' + (lk(m[1].slice(i + 2)) || m[1].slice(i + 2))); }),
+    rx('Related: (.+)', m => { const i = m[1].indexOf(', '); return '相关：' + (i < 0 ? m[1] : dateCN(m[1].slice(0, i)) + '，' + (lk(m[1].slice(i + 2)) || m[1].slice(i + 2))); }),
     rx('([\\d.,]+) days(?: \\((\\d+) events\\))?', m => `${m[1]} 天` + (m[2] ? `（${m[2]} 次事件）` : '')),
-    rx('Source: (.+)\\. Dates: (.+) to (.+), (\\d{4})\\.', m => `来源：${m[1]}。日期：${m[2]} 至 ${m[3]}，${m[4]}年。`),
+    rx('Source: (.+)\\. Dates: (.+) to (.+), (\\d{4})\\.', m => `来源：${m[1]}。日期：${dateCN(m[2])} 至 ${dateCN(m[3])}，${m[4]}年。`),
     // schematic
     rx('(\\d+)% STORAGE', m => `库容 ${m[1]}%`),
     rx('(\\d+) \\/ (\\d+) OPEN', m => `${m[1]} / ${m[2]} 开启`),
@@ -194,6 +194,13 @@
     rx('Dam schematic\\. Reservoir (.+?)\\. (?:Peak ([\\d,]+) cubic metres per second\\. )?Flow (\\w+)\\. Gates (.+?)\\.(?: Channel capacity ([\\d,]+) cubic metres per second, (release above capacity|release within capacity)\\.)?',
       m => `大坝示意图。水库${lk(m[1].toUpperCase()) || m[1]}。` + (m[2] ? `放水峰值 ${m[2]} 立方米每秒。` : '') + `水流${lk(m[3].toUpperCase()) || m[3]}。闸门${lk(m[4].toUpperCase()) || lk(m[4].replace(/ open$/i, '').toUpperCase()) || m[4]}。` + (m[5] ? `河道过流能力 ${m[5]} 立方米每秒，${m[6].endsWith('above capacity') ? '放水量超过过流能力' : '放水量未超过过流能力'}。` : ''))
   ];
+
+  // "4–15 Jul 2002" -> "2002年7月4日至15日", "19 Jun" -> "6月19日"
+  function dateCN(s) {
+    const M = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
+    return s.replace(/(\d{1,2})(?:–(\d{1,2}))? (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)(?: (\d{4}))?/g,
+      (m, d1, d2, mon, yr) => (yr ? yr + '年' : '') + M[mon] + '月' + d1 + '日' + (d2 ? '至' + d2 + '日' : ''));
+  }
 
   function lk(core, node) {
     if (Object.prototype.hasOwnProperty.call(D, core)) return D[core];
