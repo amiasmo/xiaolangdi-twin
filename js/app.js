@@ -443,8 +443,8 @@ function showDebrief() {
   const d = Game.debrief();
   $('dashboard').hidden = true;
 
-  // Real peak flows at Lijin (data/events.json): mean, min and max are computed here, not typed in
-  const peaks = data.events.map(e => e.peak_flow_lijin);
+  // Real peak flows at Lijin (data/events.json, Wang et al. 2017 Table 1): mean, min and max are computed here, not typed in
+  const peaks = data.events.flatMap(e => e.event_peaks || [e.peak_flow_lijin]);   // 15 events, as in Table 1
   const mean = peaks.reduce((a, b) => a + b, 0) / peaks.length;
   const lo = Math.min(...peaks), hi = Math.max(...peaks);
   const n = Game.history.length;

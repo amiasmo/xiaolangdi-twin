@@ -13,7 +13,7 @@
 
 const clamp = (x, a = 0, b = 100) => Math.min(b, Math.max(a, x));
 const MODEL_CONST = {
-  volFactor: 0.000683,       // % of reservoir per (m3/s x day): 86,400 s / 12.65e9 m3 x 100
+  volFactor: 0.000680,       // % of reservoir per (m3/s x day): 86,400 s / 12.7e9 m3 x 100 (storage 12.7 km3, Wang et al. 2017)
   defaultSedStock: 30        // sediment units sitting in the reservoir at the start
 };
 
