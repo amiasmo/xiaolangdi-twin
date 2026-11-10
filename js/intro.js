@@ -7,7 +7,7 @@
   const landing = $('landing'), stage = $('stage'), subs = $('subs');
   const v1 = $('video1'), v2 = $('video2');
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const AI_CREDIT = 'AI-generated video (Seedance 2.5 ai)';
+  const AI_CREDIT = 'AI-generated video (ByteDance Seedance 2.5)';   // model name verified: Seedance 2.5, released 31 Jul 2026
   let step = 0;          // 0 landing, 1 video1, 2 video2, 3 start page shown, 4 entering site
   const startPage = $('startpage');
   let ccOn = true, muted = false;

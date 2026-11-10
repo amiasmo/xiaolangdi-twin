@@ -64,6 +64,7 @@
     <nav role="tablist" aria-label="Sections">
       <button role="tab" data-tab="simulator" aria-selected="true">Simulator</button>
       <button role="tab" data-tab="timeline" aria-selected="false">Governance Timeline</button>
+      <button role="tab" data-tab="findings" aria-selected="false">Findings</button>
       <button role="tab" data-tab="about" aria-selected="false">About and Method</button>
     </nav>
     <button type="button" class="lang-btn" data-lang-toggle>中文</button>
@@ -175,6 +176,152 @@
       <ol id="timelineList" class="timeline"></ol>
     </section>
 
+    <!-- ---------- FINDINGS ---------- -->
+    <section id="tab-findings" class="tabpanel" hidden>
+      <h2>Findings and Conclusion</h2>
+
+<div data-lang="en">
+      <div class="thesis">
+        <p>Routing the water is not the hard part. Deciding <strong>whose goal comes first</strong> is — and that order is set by law, not by the model.</p>
+        <p class="sub">Three findings from running this simulator against its own full action space (46 peaks × 18 durations × 13 reserve levels = 10,764 plays per round).</p>
+      </div>
+
+      <div class="finding">
+        <h3>1. The four goals squeeze each other<span class="tag">trade-off</span></h3>
+        <p>In a dry year with heavy sediment and high demand, <strong>maximising any single goal pushes at least one other below the critical line (40)</strong>. Flushing sediment needs a peak above what the channel can carry; protecting the channel leaves the sediment in the reservoir.</p>
+        <div class="tablewrap">
+        <table class="params">
+          <thead><tr><th>Play for…</th><th>Settings</th><th>Flood</th><th>Reservoir</th><th>Supply</th><th>Ecology</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr><td>Flood safety only</td><td>500 m³/s · 3 d · 0 %</td><td class="n">100</td><td class="n crit">22</td><td class="n">56</td><td class="n crit">40</td><td class="n">57.5</td></tr>
+            <tr><td>Reservoir health only</td><td>4,800 m³/s · 10 d · 0 %</td><td class="n crit">0</td><td class="n">65</td><td class="n">47</td><td class="n">95</td><td class="n">46.9</td></tr>
+            <tr><td>Water supply only</td><td>500 m³/s · 3 d · 60 %</td><td class="n">100</td><td class="n crit">22</td><td class="n">86</td><td class="n crit">40</td><td class="n">65.0</td></tr>
+            <tr><td>Ecology only</td><td>4,200 m³/s · 19 d · 0 %</td><td class="n crit">0</td><td class="n">63</td><td class="n crit">23</td><td class="n">100</td><td class="n">41.4</td></tr>
+            <tr class="hi"><td>Best balance</td><td>2,800 m³/s · 10 d · 60 %</td><td class="n">100</td><td class="n">54</td><td class="n">83</td><td class="n">81</td><td class="n">80.4</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p class="small">Dry year, high sediment, high demand; storage 55 %, channel capacity 2,800 m³/s. Teaching model scores, not measurements.</p>
+      </div>
+
+      <div class="finding">
+        <h3>2. Where a rule is set matters more than whether it exists<span class="tag">shadow price</span></h3>
+        <p>This game carries two policy rules: a minimum delta flow of 800 m³/s and a 25 % supply reserve. <strong>Neither costs anything.</strong> Across all eight rounds, the highest-scoring play satisfies both without trying — the rules never change a single decision. Raising the ecological floor shows where it would start to bite:</p>
+        <div class="tablewrap">
+        <table class="params">
+          <thead><tr><th>Minimum delta flow</th><th>Score given up to comply</th><th>Best compliant play</th></tr></thead>
+          <tbody>
+            <tr><td>800 m³/s <em>(current)</em></td><td class="n">0.0</td><td>3,200 m³/s · 10 d</td></tr>
+            <tr><td>1,000 m³/s</td><td class="n">0.0</td><td>3,200 m³/s · 10 d</td></tr>
+            <tr class="hi"><td>1,100 m³/s</td><td class="n">2.2</td><td>3,300 m³/s · 12 d</td></tr>
+            <tr><td>1,300 m³/s</td><td class="n">15.3</td><td>4,000 m³/s · 12 d</td></tr>
+            <tr><td>1,600 m³/s</td><td class="n">32.4</td><td>5,000 m³/s · 12 d</td></tr>
+            <tr><td>1,800 m³/s</td><td class="n">—</td><td>no feasible play</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p>A rule that costs nothing is a rule nobody has to obey. <strong>The policy question is never "should there be a limit" but "what number, and who sets it".</strong></p>
+      </div>
+
+      <div class="finding">
+        <h3>3. The law gives an order, not a number<span class="tag">governance</span></h3>
+        <p>Article 3 of the Regulations of Yellow River Water Regulating (2006) sets out three kinds of requirement, and they are not the same kind of thing mathematically:</p>
+        <div class="layers">
+          <div class="layer"><b>HARD LIMIT</b><span><em>Total-volume control, section-flow control, prevent the river running dry</em> — a boundary of what is allowed at all, not something a score can buy back.</span></div>
+          <div class="layer"><b>PRIORITY</b><span><em>"First meet urban and rural domestic water needs"</em> — a strict order, not a weight. A high ecology score cannot compensate a domestic-water shortfall.</span></div>
+          <div class="layer"><b>BALANCE</b><span><em>"Reasonably arrange agricultural, industrial and environmental water"</em> — the only layer where a weighted trade-off is the right model.</span></div>
+        </div>
+        <p>The Yellow River Protection Law (2022) spreads our four meters across <strong>three different chapters</strong> with three different instruments: flood safety and reservoir health in Chapter V (water-sediment regulation and flood safety), water supply in Chapter IV (intensive and economical water use), ecology in Chapter III (ecological protection and restoration). <strong>Nowhere does it state a single weighted objective.</strong> The numbers — how much flow at which gauging section — come from the annual water regulation plan, an administrative decision remade every year.</p>
+        <p class="small">The regulation's own legal interfaces were rewritten in the meantime: State Council Decree No. 843 (8 Aug 2026) amended Article 42 so that it now defers to the Ecological Environment Code and the Yellow River Protection Law alongside the Water Law and the Flood Control Law.</p>
+      </div>
+
+      <h3>What we propose</h3>
+      <p>A model of this system should keep the three layers apart instead of flattening them into one weighted sum:</p>
+      <div class="layers">
+        <div class="layer"><b>L1</b><span><em>Hard constraints</em> — section flow floor, no dry-up, peak within channel capacity. Breaking one makes a play infeasible, not merely expensive.</span></div>
+        <div class="layer"><b>L2</b><span><em>Lexicographic priority</em> — domestic supply is satisfied first; only then are the remaining goals compared.</span></div>
+        <div class="layer"><b>L3</b><span><em>Weighted trade-off</em> — flood safety, sediment and ecology, which is where real discretion lives.</span></div>
+      </div>
+      <p>And the rule layer belongs <strong>outside</strong> the model: constraint values should be inputs read from the annual regulation plan, not constants compiled into the scoring code.</p>
+
+      <h3>Conclusion</h3>
+      <div class="thesis">
+        <p>A digital twin can route the water. It cannot tell you whose goal comes first.</p>
+        <p class="sub">Because the law supplies the order but not the numbers, and the numbers are remade administratively every year, any twin with fixed weights is interpolating a policy snapshot. Making that visible — rather than hiding it inside a scoring function — is what this prototype is for.</p>
+      </div>
+</div>
+
+<div data-lang="zh">
+      <div class="thesis">
+        <p>难的不是把水算准，而是<strong>四个目标谁优先</strong>——而这个顺序由法律决定，不由模型决定。</p>
+        <p class="sub">以下三个发现，来自对本模拟器自身全部动作空间的遍历（峰值 46 档 × 历时 18 档 × 预留 13 档 = 每轮 10,764 种打法）。</p>
+      </div>
+
+      <div class="finding">
+        <h3>一、四个目标互相挤压<span class="tag">取舍</span></h3>
+        <p>在枯水、高来沙、高需水的年份里，<strong>只要全力追求任何一个目标，至少有另一项会跌破危急线（40 分）</strong>。冲沙需要超过河道过流能力的大流量；而保住河道，泥沙就留在了水库里。</p>
+        <div class="tablewrap">
+        <table class="params">
+          <thead><tr><th>只求…</th><th>打法</th><th>防洪</th><th>水库</th><th>供水</th><th>生态</th><th>总分</th></tr></thead>
+          <tbody>
+            <tr><td>防洪安全</td><td>500 m³/s · 3 天 · 预留 0 %</td><td class="n">100</td><td class="n crit">22</td><td class="n">56</td><td class="n crit">40</td><td class="n">57.5</td></tr>
+            <tr><td>水库健康</td><td>4,800 m³/s · 10 天 · 预留 0 %</td><td class="n crit">0</td><td class="n">65</td><td class="n">47</td><td class="n">95</td><td class="n">46.9</td></tr>
+            <tr><td>供水保障</td><td>500 m³/s · 3 天 · 预留 60 %</td><td class="n">100</td><td class="n crit">22</td><td class="n">86</td><td class="n crit">40</td><td class="n">65.0</td></tr>
+            <tr><td>生态</td><td>4,200 m³/s · 19 天 · 预留 0 %</td><td class="n crit">0</td><td class="n">63</td><td class="n crit">23</td><td class="n">100</td><td class="n">41.4</td></tr>
+            <tr class="hi"><td>均衡最优</td><td>2,800 m³/s · 10 天 · 预留 60 %</td><td class="n">100</td><td class="n">54</td><td class="n">83</td><td class="n">81</td><td class="n">80.4</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p class="small">枯水年、高来沙、高需水；初始蓄水 55 %、河道过流能力 2,800 m³/s。分数来自教学模型，不是实测。</p>
+      </div>
+
+      <div class="finding">
+        <h3>二、规则定在多少，比有没有规则更要紧<span class="tag">影子价格</span></h3>
+        <p>游戏里有两条政策规则：三角洲流量不低于 800 m³/s、供水预留不低于 25 %。<strong>它们一分钱代价都没有。</strong>八轮里得分最高的打法全都自动满足这两条——规则从未改变过任何一个决策。把生态流量下限往上推，才看得到它从哪里开始真正起作用：</p>
+        <div class="tablewrap">
+        <table class="params">
+          <thead><tr><th>生态流量下限</th><th>为守规则付出的分数</th><th>守规则的最优打法</th></tr></thead>
+          <tbody>
+            <tr><td>800 m³/s <em>（现行）</em></td><td class="n">0.0</td><td>3,200 m³/s · 10 天</td></tr>
+            <tr><td>1,000 m³/s</td><td class="n">0.0</td><td>3,200 m³/s · 10 天</td></tr>
+            <tr class="hi"><td>1,100 m³/s</td><td class="n">2.2</td><td>3,300 m³/s · 12 天</td></tr>
+            <tr><td>1,300 m³/s</td><td class="n">15.3</td><td>4,000 m³/s · 12 天</td></tr>
+            <tr><td>1,600 m³/s</td><td class="n">32.4</td><td>5,000 m³/s · 12 天</td></tr>
+            <tr><td>1,800 m³/s</td><td class="n">—</td><td>无可行解</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p>一条不需要付出代价的规则，等于没有人需要遵守它。<strong>政策问题从来不是"要不要设限"，而是"设在多少、由谁来设"。</strong></p>
+      </div>
+
+      <div class="finding">
+        <h3>三、法律给的是顺序，不是数字<span class="tag">治理</span></h3>
+        <p>《黄河水量调度条例》（2006）第三条里写了三类要求，而它们在数学上根本不是同一种东西：</p>
+        <div class="layers">
+          <div class="layer"><b>硬约束</b><span><em>总量控制、断面流量控制、防止黄河断流</em>——这是"允不允许"的边界，不是可以用分数赎买的扣项。</span></div>
+          <div class="layer"><b>优先序</b><span><em>"首先满足城乡居民生活用水的需要"</em>——这是严格的先后，不是权重。生态得分再高，也不能抵偿生活用水的缺口。</span></div>
+          <div class="layer"><b>可裁量</b><span><em>"合理安排农业、工业、生态环境用水"</em>——只有这一层，用加权取舍来建模才是对的。</span></div>
+        </div>
+        <p>《黄河保护法》（2022）把我们这四项指标分散在<strong>三个不同的章</strong>里，对应三套不同的手段：防洪安全与水库健康在第五章（水沙调控与防洪安全），供水保障在第四章（水资源节约集约利用），生态在第三章（生态保护与修复）。<strong>全法没有任何一处给出统一的加权目标。</strong>而具体数字——哪个控制断面、下泄多少——出自每年重新制订的年度水量调度计划，那是行政决定。</p>
+        <p class="small">这期间条例自身的法律接口也被改写过：国务院令第843号（2026年8月8日）修改第四十二条，使其在水法、防洪法之外，同时援引《生态环境法典》与《黄河保护法》。</p>
+      </div>
+
+      <h3>我们的建议</h3>
+      <p>对这个系统建模，应当把三层分开，而不是压成一个加权和：</p>
+      <div class="layers">
+        <div class="layer"><b>L1</b><span><em>硬约束</em>——断面流量下限、不断流、峰值不超过河道过流能力。违反其一即为不可行，而不只是"代价较高"。</span></div>
+        <div class="layer"><b>L2</b><span><em>字典序优先</em>——先满足生活用水，然后才比较其余目标。</span></div>
+        <div class="layer"><b>L3</b><span><em>加权取舍</em>——防洪、泥沙与生态之间，这里才是真正的裁量空间。</span></div>
+      </div>
+      <p>而规则层应当在模型<strong>之外</strong>：约束取值应当是从年度水量调度计划读入的输入，而不是写死在评分代码里的常数。</p>
+
+      <h3>结论</h3>
+      <div class="thesis">
+        <p>数字孪生能算水，算不出该听谁的。</p>
+        <p class="sub">因为法律只给顺序、不给数字，而数字每年由行政程序重新生成——任何采用固定权重的孪生体，本质上都是在对一张政策快照做插值。把这件事显示出来，而不是把它藏进一个评分函数里，正是这个原型存在的意义。</p>
+      </div>
+</div>
+    </section>
     <!-- ---------- ABOUT ---------- -->
 	<section id="tab-about" class="tabpanel" hidden>
 	  <h2>About and Method</h2>
@@ -238,8 +385,8 @@
           <tr><td>Flushing efficiency</td><td>peak ÷ 4,000 × min(1, days ÷ 10)</td><td>Anchored to real practice: peak flows around 4,000 m³/s and a high-flow phase of about 10 days (Wang et al., 2017). The formula itself is an assumption.</td></tr>
           <tr><td>Sediment carried out</td><td>incoming × (0.2 + 0.7 × efficiency), plus scour of old deposit = min(stock, 12 × efficiency)</td><td>Teaching assumption</td></tr>
           <tr><td>Starting sediment stock in the reservoir</td><td>30 units</td><td>Teaching assumption</td></tr>
-          <tr><td>Channel capacity change per round</td><td>+220 × efficiency (max 1) × headroom − 4 × sediment deposited; headroom = (5,000 − capacity) ÷ 3,200, between 0.05 and 1</td><td>Teaching assumption, scaled so the best-case gain is about 100 to 200 m³/s per round, the order of the reported rise from about 1,800 to 4,500 m³/s over 2002 to 2020, and slows as capacity rises</td></tr>
-          <tr><td>Starting channel capacity</td><td>2,800 m³/s</td><td>Assumption inside the reported 1,800 to 4,500 m³/s range, 2002 to 2020</td></tr>
+          <tr><td>Channel capacity change per round</td><td>+220 × efficiency (max 1) × headroom − 4 × sediment deposited; headroom = (5,000 − capacity) ÷ 3,200, between 0.05 and 1</td><td>Teaching assumption, scaled so the best-case gain is about 100 to 200 m³/s per round, the order of the reported rise from about 1,800 m³/s (2002) to about 4,300 m³/s (2018), and slows as capacity rises</td></tr>
+          <tr><td>Starting channel capacity</td><td>2,800 m³/s</td><td>Assumption inside the reported range: about 1,800 m³/s (2002) to about 4,300 m³/s (2018)</td></tr>
           <tr><td>Starting reservoir storage</td><td>55 %</td><td>Teaching assumption</td></tr>
           <tr><td>Flow reaching the delta</td><td>0.3 × delivered peak × (0.5 + 0.5 × min(1, days ÷ 12)) + base flow of 60 / 120 / 200 m³/s (dry / normal / wet)</td><td>Teaching assumption</td></tr>
           <tr><td>Policy rules</td><td>800 m³/s delta flow; 25 % reserve; 6,000 m³/s inflow peak</td><td>Teaching assumptions, not official policy values</td></tr>
@@ -299,7 +446,7 @@
       <h3>指标定义</h3>
       <ul>
         <li><strong>防洪安全</strong>在以下情况下下降：放水峰值超过当前河道过流能力；面对较大的入库洪峰却放水不足；或水库几乎蓄满。</li>
-        <li><strong>水库健康</strong>由三部分取平均：本轮有多少泥沙留在水库中，库容离中间水平有多近，以及留存的泥沙存量有多大。</li>
+        <li><strong>水库健康</strong>由三部分取平均：本轮有多少泥沙留在水库中，蓄水量离中等水平有多近，以及留存的泥沙存量有多大。</li>
         <li><strong>供水保障</strong>综合三部分：满足了多少需水，为来年留下了多少水，以及供水预留对需水的覆盖程度。如果计划放水因预留而被削减，该项会被扣分。</li>
         <li><strong>生态</strong>奖励较长的放水（边际收益递减）、更多被带到下游的泥沙以及更多抵达三角洲的水量，并因极端的洪峰流量而被扣分。违反政策规则会扣分。</li>
       </ul>
@@ -324,8 +471,8 @@
           <tr><td>冲刷效率</td><td>峰值 ÷ 4,000 × min(1, 天数 ÷ 10)</td><td>参照实际做法：峰值流量约 4,000 m³/s，高流量阶段约 10 天（Wang 等，2017）。公式本身是假设。</td></tr>
           <tr><td>排出的泥沙</td><td>入库泥沙 × (0.2 + 0.7 × 效率)，再加对旧淤积的冲刷 = min(存量, 12 × 效率)</td><td>教学假设</td></tr>
           <tr><td>水库初始泥沙存量</td><td>30 单位</td><td>教学假设</td></tr>
-          <tr><td>每轮河道过流能力变化</td><td>+220 × 效率（最大为 1）× 余量 − 4 × 淤积泥沙；余量 = (5,000 − 过流能力) ÷ 3,200，介于 0.05 和 1 之间</td><td>教学假设，按最佳情况每轮增加约 100 至 200 m³/s 设定，与报道的 2002 至 2020 年间由约 1,800 升至 4,500 m³/s 属同一量级，并随过流能力提高而放缓</td></tr>
-          <tr><td>初始河道过流能力</td><td>2,800 m³/s</td><td>假设值，位于 2002 至 2020 年报道的 1,800 至 4,500 m³/s 范围之内</td></tr>
+          <tr><td>每轮河道过流能力变化</td><td>+220 × 效率（最大为 1）× 余量 − 4 × 淤积泥沙；余量 = (5,000 − 过流能力) ÷ 3,200，介于 0.05 和 1 之间</td><td>教学假设，按最佳情况每轮增加约 100 至 200 m³/s 设定，与报道的由约 1,800 m³/s（2002年）升至约 4,300 m³/s（2018年）属同一量级，并随过流能力提高而放缓</td></tr>
+          <tr><td>初始河道过流能力</td><td>2,800 m³/s</td><td>假设值，位于报道的约 1,800 m³/s（2002年）至约 4,300 m³/s（2018年）区间之内</td></tr>
           <tr><td>初始水库蓄水量</td><td>55 %</td><td>教学假设</td></tr>
           <tr><td>到达三角洲的流量</td><td>0.3 × 实际放出的峰值 × (0.5 + 0.5 × min(1, 天数 ÷ 12)) + 基流 60 / 120 / 200 m³/s（枯水 / 平水 / 丰水）</td><td>教学假设</td></tr>
           <tr><td>政策规则</td><td>三角洲流量 800 m³/s；预留 25 %；入库洪峰 6,000 m³/s</td><td>教学假设，并非官方政策数值</td></tr>
@@ -356,9 +503,9 @@
       <ol class="refs">
         <li>Wang, H., Wu, X., Bi, N., Li, S., Yuan, P., Wang, A., Syvitski, J. P. M., Saito, Y., Yang, Z., Liu, S., &amp; Nittrouer, J. (2017). Impacts of the dam-orientated water-sediment regulation scheme on the lower reaches and delta of the Yellow River (Huanghe): A review. <em>Global and Planetary Change, 157</em>, 93–113. <a href="https://doi.org/10.1016/j.gloplacha.2017.08.005" target="_blank" rel="noopener">https://doi.org/10.1016/j.gloplacha.2017.08.005</a></li>
         <li>Nunn, J. A. (1999). <em>The Xiaolangdi Multipurpose Dam Project.</em> Society for Mining, Metallurgy &amp; Exploration. <a href="https://www.onemine.org/documents/the-xiaolangdi-multipurpose-dam-project" target="_blank" rel="noopener">onemine.org</a></li>
-        <li>World Bank. <em>Xiaolangdi Multipurpose Project (P003562).</em> <a href="https://projects.worldbank.org/en/projects-operations/project-detail/P003562" target="_blank" rel="noopener">projects.worldbank.org</a></li>
-        <li>Liang, L. <em>Water management and allocation of the Yellow River Basin.</em> International Water Management Institute. <a href="https://archive.iwmi.org/assessment/files_new/research_projects/river_basin_development_and_management/Liang_WaterPolicy_YRB.pdf" target="_blank" rel="noopener">IWMI archive</a></li>
-        <li><em>Strategic Study of CAE</em> (2022). Research on water and sediment regulation of the Yellow River under new situation. <a href="https://www.engineering.org.cn/sscae/EN/10.15302/J-SSCAE-2022.01.013" target="_blank" rel="noopener">doi 10.15302/J-SSCAE-2022.01.013</a></li>
+        <li>World Bank. <em>Xiaolangdi Multipurpose Project (P003562)</em> [project page, accessed November 2026]. <a href="https://projects.worldbank.org/en/projects-operations/project-detail/P003562" target="_blank" rel="noopener">projects.worldbank.org</a></li>
+        <li>Liang, L. (2004). <em>Water management and allocation of the Yellow River Basin.</em> International Water Management Institute (IWMI). <a href="https://archive.iwmi.org/assessment/files_new/research_projects/river_basin_development_and_management/Liang_WaterPolicy_YRB.pdf" target="_blank" rel="noopener">IWMI archive</a></li>
+        <li>Hu, C., Zhang, S., &amp; Zhang, X. (2022). Research on water and sediment regulation of the Yellow River under new situation. <em>Strategic Study of CAE, 24</em>(1), 122–130. <a href="https://www.engineering.org.cn/sscae/EN/10.15302/J-SSCAE-2022.01.013" target="_blank" rel="noopener">doi 10.15302/J-SSCAE-2022.01.013</a></li>
         <li>Xinhua (2026, August 12). Yellow River records 27 consecutive years of uninterrupted flow. <a href="https://english.news.cn/20260812/26199b0dadc94f05a77ca60f40b78ca6/c.html" target="_blank" rel="noopener">english.news.cn</a></li>
         <li>Xinhua (2022, October 30). China adopts law on Yellow River conservation. <a href="http://english.news.cn/20221030/ccc5f681776e40cd9920b6b0d5a082d0/c.html" target="_blank" rel="noopener">english.news.cn</a></li>
         <li>China.org.cn (2006). Yellow River water use to be regulated. <a href="http://www.china.org.cn/archive/2006-08/02/content_1176629.htm" target="_blank" rel="noopener">china.org.cn</a></li>
@@ -368,14 +515,14 @@
 
       <div data-lang="en">
 <h3>Use of AI</h3>
-      <p>The two introduction videos were generated with AI (Seedance 2.5 ai) and are illustrative, not documentary footage. The code of this site was written with web coding assistance from Claude Sonnet 5.5 (Anthropic) and edited by the group. The data entries were compiled with AI-assisted web search and are linked to their sources.</p>
+      <p>The two introduction videos were generated with AI (ByteDance Seedance 2.5) and are illustrative, not documentary footage. The code of this site was written with web coding assistance from Claude (Anthropic) and edited by the group. The data entries were compiled with AI-assisted web search and are linked to their sources.</p>
 
       <h3>Code map</h3>
       <p>intro.js (video intro), app.js (interface), game.js (Challenge rules), model.js (simulation), i18n.js (language switch),  data/*.json (content).</p>
     </div>
 <div data-lang="zh">
 <h3>人工智能的使用</h3>
-      <p>两段介绍视频由 AI（Seedance 2.5 ai）生成，仅作示意，并非纪实影像。本网站的代码在 Claude Sonnet 5.5（Anthropic）的网页编程辅助下编写，并由小组修改。数据条目借助 AI 辅助的网络搜索整理而成，并附有来源链接。</p>
+      <p>两段介绍视频由 AI（字节跳动 Seedance 2.5）生成，仅作示意，并非纪实影像。本网站的代码在 Claude（Anthropic）的网页编程辅助下编写，并由小组修改。数据条目借助 AI 辅助的网络搜索整理而成，并附有来源链接。</p>
 
       <h3>代码结构</h3>
       <p>intro.js（视频片头）、app.js（界面）、game.js（挑战规则）、model.js（模拟）、i18n.js（语言切换）、data/*.json（内容）。</p>
