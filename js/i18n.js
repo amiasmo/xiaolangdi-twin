@@ -42,11 +42,11 @@
     'Share of demand served, plus water kept for next year and the reserve.': '满足需水的比例，加上留给来年的水量和预留水量。',
     'Rewards': '奖励将泥沙', 'channel capacity': '河道过流能力', 'flushing': '冲刷', 'delta': '三角洲',
     'Drops when the peak release is larger than the': '当放水峰值超过',
-    'sediment out and keeping storage near mid-level.': '排出水库，并使库容保持在中等水平。',
+    'sediment out and keeping storage near mid-level.': '排出水库，并使蓄水量保持在中等水平。',
     'Rewards longer high flows and sediment and water reaching the': '奖励更长时间的高流量，以及抵达',
     'Not run yet': '尚未运行', 'Critical': '危急', 'Needs attention': '需关注', 'Healthy': '良好',
     'no change vs last run': '与上次相比无变化', 'no change': '无变化',
-    '% of capacity': '% 库容',
+    '% of capacity': '%（占总库容）',
     // run area
     'Schematic, not a hydraulic model: the three gates open in turn as the peak release rises (all open at 5,000 m³/s). This illustrates release size, not real gate operation.': '示意图，并非水力学模型：随着放水峰值上升，三个闸门依次开启（5,000 m³/s 时全部开启）。它只表示放水大小，并非真实的闸门运行。',
     'Release': '放水', 'm³/s for': 'm³/s，持续', 'days,': '天，预留', '% of water reserved': '% 的水量用于供水',
@@ -80,7 +80,7 @@
     'Your bars are release settings in this simplified game, so compare them as an order of magnitude only.': '柱状图是这个简化游戏中的放水设置，只能作数量级上的比较。',
     'Peak flow (m³/s)': '洪峰流量（m³/s）', 'Your peak release': '你的放水峰值', 'Real mean, Lijin 2002 to 2013': '实测平均值，利津站 2002 至 2013',
     'Real minimum': '实测最小值', 'Real maximum': '实测最大值', 'Score (0 to 100)': '得分（0 至 100）',
-    'Releasing more than the channel can carry endangers people downstream, but the safe limit is not fixed: scouring raised the real lower river\'s minimum bankfull capacity from about 1,800 m³/s (2002) to about 4,500 m³/s (2020).': '放水超过河道所能承受的流量会危及下游居民，但安全限度并不是固定的：冲刷使黄河下游实际最小平滩流量从约 1,800 m³/s（2002年）提高到约 4,500 m³/s（2020年）。',
+    'Releasing more than the channel can carry endangers people downstream, but the safe limit is not fixed: scouring raised the real lower river\'s minimum bankfull capacity from about 1,800 m³/s (2002) to about 4,300 m³/s (2018).': '放水超过河道所能承受的流量会危及下游居民，但安全限度并不是固定的：冲刷使黄河下游实际最小平滩流量从约 1,800 m³/s（2002年）提高到约 4,300 m³/s（2018年）。',
     'Flushing sediment needs strong, sustained flow, and that water is also needed for supply. Sanmenxia\'s early siltation is why sediment management became central to the river.': '冲沙需要强劲而持续的流量，而这些水同样是供水所需。三门峡早期的淤积，正是泥沙管理成为治河核心的原因。',
     'No single goal can be maximised. Real regulation has moved from preventing dry-ups to coordinating flood safety, sediment, supply and ecology together.': '没有哪个目标可以单独最大化。现实中的调控已从防止断流，转向统筹防洪安全、泥沙、供水和生态。',
     // timeline tab
@@ -95,7 +95,7 @@
     'Dam, reservoir and river schematic': '大坝、水库与河流示意图',
     'RESERVOIR LEVEL': '水库水位', 'PEAK RELEASE': '放水峰值', 'FLOW INTENSITY': '水流强度', 'SEDIMENT LOAD': '泥沙负荷', 'GATES': '闸门',
     'GATE OPENING': '闸门开度', 'CHANNEL CAPACITY': '河道过流能力', 'PEAK FLOW (LIJIN)': '洪峰流量（利津）', 'SEDIMENT CONC.': '含沙量',
-    'BANKFULL CAPACITY': '平滩流量', 'IDLE': '静止', 'LOW': '低', 'MEDIUM': '中', 'HIGH': '高', 'CLOSED': '关闭', 'ILLUSTRATIVE': '仅为示意', 'STORAGE': '库容',
+    'BANKFULL CAPACITY': '平滩流量', 'IDLE': '静止', 'LOW': '低', 'MEDIUM': '中', 'HIGH': '高', 'CLOSED': '关闭', 'ILLUSTRATIVE': '仅为示意', 'STORAGE': '蓄水率',
     'RESERVOIR': '水库', 'DAM': '大坝', 'DOWNSTREAM RIVER': '下游河道', 'UPSTREAM': '上游', 'DOWNSTREAM': '下游', 'SPILLWAY': '泄洪道', 'SEA': '大海',
     'FULL POOL': '正常蓄水位', 'RELEASE vs CHANNEL CAPACITY': '放水量 对比 河道过流能力', 'ABOVE CAPACITY': '超出过流能力', 'WITHIN CAPACITY': '未超过流能力',
     // glossary tooltips
@@ -149,6 +149,9 @@
     }
     return out.join('；') + '。';
   }
+  // "19 Jun" -> "6月19日" (used by the replay card date line)
+  const MON = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
+  const md = s => { const m = /^(\d{1,2})\s+([A-Za-z]{3})$/.exec(s.trim()); return m && MON[m[2]] ? `${MON[m[2]]}月${m[1]}日` : s; };
   const RULES = [
     rx('AI-generated video \\((.+)\\) · Illustrative (history of the Yellow River|introduction to the project)', m => `AI 生成视频（${m[1]}）· 示意性${m[2].startsWith('history') ? '黄河历史' : '项目介绍'}`),
     rx('Round (\\d+) of (\\d+)', m => `第 ${m[1]} / ${m[2]} 轮`),
@@ -164,10 +167,10 @@
     [/^[A-Z][^]*\.$/, (m, node, core) => explainTr(core)],
     rx('The peak that reached the river, ' + N + ' m³\\/s, was above the channel capacity of ' + N + ' m³\\/s, and the penalty grows with the overshoot\\.', m => `到达河道的峰值 ${m[1]} m³/s 超过了河道过流能力 ${m[2]} m³/s，超出越多，扣分越重。`),
     rx('The peak stayed within capacity \\(' + N + ' m³\\/s\\), but the release was small next to the ' + N + ' m³\\/s flood arriving, which adds flood risk\\.', m => `放水峰值未超过过流能力（${m[1]} m³/s），但与即将到来的 ${m[2]} m³/s 洪水相比放水偏小，增加了洪水风险。`),
-    rx('The peak stayed within capacity, but the reservoir ended (\\d+)% full, which cuts the score\\.', m => `放水峰值未超过过流能力，但水库最终蓄满了 ${m[1]}%，导致扣分。`),
+    rx('The peak stayed within capacity, but the reservoir ended (\\d+)% full, which cuts the score\\.', m => `放水峰值未超过过流能力，但水库蓄水率最终达 ${m[1]}%，导致扣分。`),
     rx('The peak of ' + N + ' m³\\/s stayed within the channel capacity of ' + N + ' m³\\/s\\.', m => `${m[1]} m³/s 的峰值未超过河道过流能力 ${m[2]} m³/s。`),
     rx('(?:([\\d.,-]+) sediment units stayed in the reservoir, which lowers the score and takes up storage\\.|Net flushing removed ([\\d.,-]+) sediment units, which helps\\.) ([\\d.,-]+) units of old deposit remain(?:, and storage ended at (\\d+)%, far from mid-level\\.|\\.)',
-      m => (m[1] ? `${m[1]} 个单位的泥沙留在水库中，既降低得分又占用库容。` : `净冲刷带走了 ${m[2]} 个单位的泥沙，这是有利的。`) + ` 旧淤积还剩 ${m[3]} 个单位` + (m[4] ? `，库容最终为 ${m[4]}%，远离中等水平。` : '。')),
+      m => (m[1] ? `${m[1]} 个单位的泥沙留在水库中，既降低得分又占用库容。` : `净冲刷带走了 ${m[2]} 个单位的泥沙，这是有利的。`) + ` 旧淤积还剩 ${m[3]} 个单位` + (m[4] ? `，蓄水率最终为 ${m[4]}%，偏离中等水平较远。` : '。')),
     rx('The planned release was more than the water left after the (\\d+)% reserve, so it was cut back by ([\\d.,]+)% of the reservoir volume\\.', m => `计划放水量超过了扣除 ${m[1]}% 预留后剩余的水量，因此被削减了相当于库容 ${m[2]}% 的水量。`),
     rx('(\\d+)% of the water was reserved and (\\d+)% of the reservoir was left after supplying users\\.', m => `预留了 ${m[1]}% 的水，向用水户供水后水库还剩 ${m[2]}%。`),
     rx('The release lasted (\\d+) days, ' + N + ' m³\\/s reached the delta and ([\\d.,-]+) sediment units passed the dam(; very high peaks start to lower this score\\.|\\.)', m => `放水持续 ${m[1]} 天，有 ${m[2]} m³/s 到达三角洲，${m[3]} 个单位的泥沙通过了大坝` + (m[4] === '.' ? '。' : '；过高的峰值会开始降低这一得分。')),
@@ -184,9 +187,9 @@
       m => `折线表示 2002 至 2013 年调控事件中利津站的实测洪峰流量（平均 ${m[1]}，范围 ${m[2]} 至 ${m[3]} m³/s；Wang 等，2017）。柱状图是这个简化游戏中的放水设置，只能作数量级上的比较。`),
     rx('Related: (.+)', m => { const i = m[1].indexOf(', '); return '相关：' + (i < 0 ? m[1] : m[1].slice(0, i) + '，' + (lk(m[1].slice(i + 2)) || m[1].slice(i + 2))); }),
     rx('([\\d.,]+) days(?: \\((\\d+) events\\))?', m => `${m[1]} 天` + (m[2] ? `（${m[2]} 次事件）` : '')),
-    rx('Source: (.+)\\. Dates: (.+) to (.+), (\\d{4})\\.', m => `来源：${m[1]}。日期：${m[2]} 至 ${m[3]}，${m[4]}年。`),
+    rx('Source: (.+)\\. Dates: (.+) to (.+), (\\d{4})\\.', m => `来源：${lk(m[1]) || m[1]}。日期：${md(m[2])} 至 ${md(m[3])}，${m[4]}年。`),
     // schematic
-    rx('(\\d+)% STORAGE', m => `库容 ${m[1]}%`),
+    rx('(\\d+)% STORAGE', m => `蓄水率 ${m[1]}%`),
     rx('(\\d+) \\/ (\\d+) OPEN', m => `${m[1]} / ${m[2]} 开启`),
     rx('([\\d.,]+) kg\\/m³ MAX', m => `最大 ${m[1]} kg/m³`),
     rx('(CAPACITY|BANKFULL) ([\\d,]+)', m => (m[1] === 'CAPACITY' ? '过流能力 ' : '平滩流量 ') + m[2]),
